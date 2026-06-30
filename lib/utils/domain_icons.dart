@@ -21,3 +21,13 @@ String domainLabel(Domain domain) {
     Domain.other => 'OTHER',
   };
 }
+
+String domainShortLabel(Domain domain) {
+  return switch (domain) {
+    Domain.engineering => 'ENG',
+    Domain.security => 'SEC',
+    Domain.opportunities => 'OPP',
+    Domain.builder => 'BLD',
+    Domain.other => 'OTH',
+  };
+}
