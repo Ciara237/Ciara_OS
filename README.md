@@ -1,6 +1,25 @@
 # ciaraos
 
-A new Flutter project.
+Ciara OS — personal productivity app (local-only v1).
+
+## Project structure
+
+```
+lib/
+├── main.dart
+├── database/              # Drift schema + generated code
+├── models/                # Domain types + enums
+├── repositories/          # Data access (Drift queries)
+├── providers/             # Riverpod wiring
+├── services/              # App-level services (e.g. OnboardingNotifier)
+│                          # — not repositories or providers
+├── router/                # GoRouter configuration
+├── screens/
+│   ├── primary/           # Main shell destinations
+│   └── secondary/         # Detail, create/edit, onboarding, etc.
+├── widgets/               # Reusable UI components
+└── theme/                 # Colors, typography, spacing, ThemeData
+```
 
 ## Getting Started
 

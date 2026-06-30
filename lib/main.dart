@@ -34,6 +34,7 @@ class CiaraOsApp extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      debugShowCheckedModeBanner: false,
       routerConfig: router,
     );
   }
