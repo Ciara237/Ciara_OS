@@ -17,9 +17,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class TaskCreateEditScreen extends ConsumerStatefulWidget {
-  const TaskCreateEditScreen({super.key, this.taskId});
+  const TaskCreateEditScreen({
+    super.key,
+    this.taskId,
+    this.initialProjectId,
+  });
 
   final String? taskId;
+  final String? initialProjectId;
 
   bool get isEditMode => taskId != null;
 
@@ -50,6 +55,9 @@ class _TaskCreateEditScreenState extends ConsumerState<TaskCreateEditScreen> {
     super.initState();
     _titleController = TextEditingController();
     _notesController = TextEditingController();
+    if (!widget.isEditMode && widget.initialProjectId != null) {
+      _selectedProjectId = int.tryParse(widget.initialProjectId!);
+    }
   }
 
   @override

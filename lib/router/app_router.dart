@@ -71,7 +71,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/tasks/new',
-        builder: (context, state) => const TaskCreateEditScreen(taskId: null),
+        builder: (context, state) => TaskCreateEditScreen(
+          taskId: null,
+          initialProjectId: state.uri.queryParameters['projectId'],
+        ),
       ),
       GoRoute(
         path: '/tasks/:id/edit',

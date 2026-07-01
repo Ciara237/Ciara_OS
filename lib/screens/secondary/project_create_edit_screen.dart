@@ -1,7 +1,11 @@
 import 'package:ciaraos/models/enums/domain.dart';
+import 'package:ciaraos/models/enums/priority.dart';
 import 'package:ciaraos/models/enums/project_status.dart';
+import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/project.dart';
+import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/project_providers.dart';
+import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_theme.dart';
 import 'package:ciaraos/theme/app_typography.dart';
@@ -128,7 +132,26 @@ class _ProjectCreateEditScreenState extends ConsumerState<ProjectCreateEditScree
           createdAt: now,
           updatedAt: now,
         );
-        await repository.insert(project.toCompanion(forInsert: true));
+        final projectId =
+            await repository.insert(project.toCompanion(forInsert: true));
+
+        if (nextAction.isNotEmpty) {
+          await ref.read(taskRepositoryProvider).insert(
+                Task(
+                  id: 0,
+                  title: nextAction,
+                  domain: _selectedDomain,
+                  status: TaskStatus.notStarted,
+                  priority: Priority.medium,
+                  started: false,
+                  today: false,
+                  projectId: projectId,
+                  postponeCount: 0,
+                  createdAt: now,
+                  updatedAt: now,
+                ).toCompanion(forInsert: true),
+              );
+        }
       }
 
       if (mounted) {
