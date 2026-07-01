@@ -64,7 +64,7 @@ class TodayActionRow extends StatelessWidget {
               color: colorScheme.onPrimary,
             ),
             label: Text(
-              '+ New Task',
+              ' New Task',
               style: AppTypography.bodyMedium.copyWith(
                 color: colorScheme.onPrimary,
                 fontWeight: FontWeight.w700,

@@ -89,7 +89,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/projects/new',
-        builder: (context, state) => const ProjectCreateEditScreen(),
+        builder: (context, state) =>
+            const ProjectCreateEditScreen(projectId: null),
+      ),
+      GoRoute(
+        path: '/projects/:id/edit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ProjectCreateEditScreen(projectId: id);
+        },
       ),
       GoRoute(
         path: '/projects/:id',

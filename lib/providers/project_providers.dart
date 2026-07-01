@@ -10,3 +10,7 @@ final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
 final allProjectsProvider = StreamProvider<List<Project>>((ref) {
   return ref.watch(projectRepositoryProvider).watchAll();
 });
+
+final projectByIdProvider = FutureProvider.family<Project?, int>((ref, id) {
+  return ref.read(projectRepositoryProvider).getById(id);
+});

@@ -63,115 +63,123 @@ class ProjectCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Container(
+        child: Ink(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHigh,
+            color: colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-            border: Border(
-              top: BorderSide(color: domainColor, width: 2),
-              left: BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-              ),
-              right: BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-              ),
-              bottom: BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-              ),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
             ),
           ),
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    domainIcon(project.domain),
-                    size: AppSpacing.md,
-                    color: domainColor,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    domainLabel(project.domain),
-                    style: AppTypography.labelSmall.copyWith(
-                      color: domainColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      project.name,
-                      style: AppTypography.headingMedium.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  if (project.externalLink != null)
-                    IconButton(
-                      icon: Icon(
-                        Icons.open_in_new,
-                        color: colorScheme.onSurfaceVariant,
-                        size: AppSpacing.lg,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: AppSpacing.xl,
-                        minHeight: AppSpacing.xl,
-                      ),
-                      onPressed: () =>
-                          _openExternalLink(project.externalLink!),
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _statusDotColor(project.status),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    _statusLabel(project.status),
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Divider(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                height: 1,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'NEXT ACTION',
-                style: AppTypography.labelSmall.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 2,
+                  width: double.infinity,
+                  color: domainColor,
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                project.nextAction ?? 'No next action set.',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: hasNextAction
-                      ? colorScheme.onSurface
-                      : colorScheme.onSurfaceVariant,
-                  fontStyle: hasNextAction ? FontStyle.normal : FontStyle.italic,
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            domainIcon(project.domain),
+                            size: AppSpacing.md,
+                            color: domainColor,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            domainLabel(project.domain),
+                            style: AppTypography.labelSmall.copyWith(
+                              color: domainColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              project.name,
+                              style: AppTypography.headingMedium.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          if (project.externalLink != null)
+                            IconButton(
+                              icon: Icon(
+                                Icons.open_in_new,
+                                color: colorScheme.onSurfaceVariant,
+                                size: AppSpacing.lg,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: AppSpacing.xl,
+                                minHeight: AppSpacing.xl,
+                              ),
+                              onPressed: () =>
+                                  _openExternalLink(project.externalLink!),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _statusDotColor(project.status),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            _statusLabel(project.status),
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Divider(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                        height: 1,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'NEXT ACTION',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        project.nextAction ?? 'No next action set.',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: hasNextAction
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurfaceVariant,
+                          fontStyle: hasNextAction
+                              ? FontStyle.normal
+                              : FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

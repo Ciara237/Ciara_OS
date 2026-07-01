@@ -52,21 +52,29 @@ class ReflectionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: controller,
-            minLines: 3,
-            maxLines: null,
-            style: AppTypography.bodyMedium.copyWith(
-              color: colorScheme.onSurface,
-            ),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: AppTypography.bodyMedium.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
               ),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
+            ),
+            child: TextField(
+              controller: controller,
+              minLines: 4,
+              maxLines: null,
+              style: AppTypography.bodyMedium.copyWith(
+                color: colorScheme.onSurface,
+              ),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: AppTypography.bodyMedium.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.all(12),
+              ),
             ),
           ),
         ],
