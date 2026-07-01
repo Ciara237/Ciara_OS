@@ -1421,6 +1421,17 @@ class $OpportunitiesTable extends Opportunities
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _leadQualityMeta = const VerificationMeta(
+    'leadQuality',
+  );
+  @override
+  late final GeneratedColumn<int> leadQuality = GeneratedColumn<int>(
+    'lead_quality',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1456,6 +1467,7 @@ class $OpportunitiesTable extends Opportunities
     documentsTotal,
     documentsReady,
     link,
+    leadQuality,
     createdAt,
     updatedAt,
   ];
@@ -1549,6 +1561,15 @@ class $OpportunitiesTable extends Opportunities
         link.isAcceptableOrUnknown(data['link']!, _linkMeta),
       );
     }
+    if (data.containsKey('lead_quality')) {
+      context.handle(
+        _leadQualityMeta,
+        leadQuality.isAcceptableOrUnknown(
+          data['lead_quality']!,
+          _leadQualityMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1618,6 +1639,10 @@ class $OpportunitiesTable extends Opportunities
         DriftSqlType.string,
         data['${effectivePrefix}link'],
       ),
+      leadQuality: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}lead_quality'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1647,6 +1672,9 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
   final int documentsTotal;
   final int documentsReady;
   final String? link;
+
+  /// 1–3 rating; null = unrated.
+  final int? leadQuality;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Opportunity({
@@ -1661,6 +1689,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     required this.documentsTotal,
     required this.documentsReady,
     this.link,
+    this.leadQuality,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1686,6 +1715,9 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     if (!nullToAbsent || link != null) {
       map['link'] = Variable<String>(link);
     }
+    if (!nullToAbsent || leadQuality != null) {
+      map['lead_quality'] = Variable<int>(leadQuality);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1710,6 +1742,9 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       documentsTotal: Value(documentsTotal),
       documentsReady: Value(documentsReady),
       link: link == null && nullToAbsent ? const Value.absent() : Value(link),
+      leadQuality: leadQuality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leadQuality),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1732,6 +1767,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       documentsTotal: serializer.fromJson<int>(json['documentsTotal']),
       documentsReady: serializer.fromJson<int>(json['documentsReady']),
       link: serializer.fromJson<String?>(json['link']),
+      leadQuality: serializer.fromJson<int?>(json['leadQuality']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1751,6 +1787,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       'documentsTotal': serializer.toJson<int>(documentsTotal),
       'documentsReady': serializer.toJson<int>(documentsReady),
       'link': serializer.toJson<String?>(link),
+      'leadQuality': serializer.toJson<int?>(leadQuality),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1768,6 +1805,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     int? documentsTotal,
     int? documentsReady,
     Value<String?> link = const Value.absent(),
+    Value<int?> leadQuality = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Opportunity(
@@ -1782,6 +1820,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     documentsTotal: documentsTotal ?? this.documentsTotal,
     documentsReady: documentsReady ?? this.documentsReady,
     link: link.present ? link.value : this.link,
+    leadQuality: leadQuality.present ? leadQuality.value : this.leadQuality,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1804,6 +1843,9 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
           ? data.documentsReady.value
           : this.documentsReady,
       link: data.link.present ? data.link.value : this.link,
+      leadQuality: data.leadQuality.present
+          ? data.leadQuality.value
+          : this.leadQuality,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1823,6 +1865,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
           ..write('documentsTotal: $documentsTotal, ')
           ..write('documentsReady: $documentsReady, ')
           ..write('link: $link, ')
+          ..write('leadQuality: $leadQuality, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1842,6 +1885,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     documentsTotal,
     documentsReady,
     link,
+    leadQuality,
     createdAt,
     updatedAt,
   );
@@ -1860,6 +1904,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
           other.documentsTotal == this.documentsTotal &&
           other.documentsReady == this.documentsReady &&
           other.link == this.link &&
+          other.leadQuality == this.leadQuality &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1876,6 +1921,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
   final Value<int> documentsTotal;
   final Value<int> documentsReady;
   final Value<String?> link;
+  final Value<int?> leadQuality;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const OpportunitiesCompanion({
@@ -1890,6 +1936,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     this.documentsTotal = const Value.absent(),
     this.documentsReady = const Value.absent(),
     this.link = const Value.absent(),
+    this.leadQuality = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -1905,6 +1952,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     this.documentsTotal = const Value.absent(),
     this.documentsReady = const Value.absent(),
     this.link = const Value.absent(),
+    this.leadQuality = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : title = Value(title),
@@ -1924,6 +1972,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     Expression<int>? documentsTotal,
     Expression<int>? documentsReady,
     Expression<String>? link,
+    Expression<int>? leadQuality,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1939,6 +1988,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
       if (documentsTotal != null) 'documents_total': documentsTotal,
       if (documentsReady != null) 'documents_ready': documentsReady,
       if (link != null) 'link': link,
+      if (leadQuality != null) 'lead_quality': leadQuality,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1956,6 +2006,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     Value<int>? documentsTotal,
     Value<int>? documentsReady,
     Value<String?>? link,
+    Value<int?>? leadQuality,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -1971,6 +2022,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
       documentsTotal: documentsTotal ?? this.documentsTotal,
       documentsReady: documentsReady ?? this.documentsReady,
       link: link ?? this.link,
+      leadQuality: leadQuality ?? this.leadQuality,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2012,6 +2064,9 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     if (link.present) {
       map['link'] = Variable<String>(link.value);
     }
+    if (leadQuality.present) {
+      map['lead_quality'] = Variable<int>(leadQuality.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2035,6 +2090,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
           ..write('documentsTotal: $documentsTotal, ')
           ..write('documentsReady: $documentsReady, ')
           ..write('link: $link, ')
+          ..write('leadQuality: $leadQuality, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -3726,6 +3782,7 @@ typedef $$OpportunitiesTableCreateCompanionBuilder =
       Value<int> documentsTotal,
       Value<int> documentsReady,
       Value<String?> link,
+      Value<int?> leadQuality,
       required DateTime createdAt,
       required DateTime updatedAt,
     });
@@ -3742,6 +3799,7 @@ typedef $$OpportunitiesTableUpdateCompanionBuilder =
       Value<int> documentsTotal,
       Value<int> documentsReady,
       Value<String?> link,
+      Value<int?> leadQuality,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -3807,6 +3865,11 @@ class $$OpportunitiesTableFilterComposer
 
   ColumnFilters<String> get link => $composableBuilder(
     column: $table.link,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get leadQuality => $composableBuilder(
+    column: $table.leadQuality,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3885,6 +3948,11 @@ class $$OpportunitiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get leadQuality => $composableBuilder(
+    column: $table.leadQuality,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3944,6 +4012,11 @@ class $$OpportunitiesTableAnnotationComposer
   GeneratedColumn<String> get link =>
       $composableBuilder(column: $table.link, builder: (column) => column);
 
+  GeneratedColumn<int> get leadQuality => $composableBuilder(
+    column: $table.leadQuality,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -3993,6 +4066,7 @@ class $$OpportunitiesTableTableManager
                 Value<int> documentsTotal = const Value.absent(),
                 Value<int> documentsReady = const Value.absent(),
                 Value<String?> link = const Value.absent(),
+                Value<int?> leadQuality = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => OpportunitiesCompanion(
@@ -4007,6 +4081,7 @@ class $$OpportunitiesTableTableManager
                 documentsTotal: documentsTotal,
                 documentsReady: documentsReady,
                 link: link,
+                leadQuality: leadQuality,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -4023,6 +4098,7 @@ class $$OpportunitiesTableTableManager
                 Value<int> documentsTotal = const Value.absent(),
                 Value<int> documentsReady = const Value.absent(),
                 Value<String?> link = const Value.absent(),
+                Value<int?> leadQuality = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
               }) => OpportunitiesCompanion.insert(
@@ -4037,6 +4113,7 @@ class $$OpportunitiesTableTableManager
                 documentsTotal: documentsTotal,
                 documentsReady: documentsReady,
                 link: link,
+                leadQuality: leadQuality,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),

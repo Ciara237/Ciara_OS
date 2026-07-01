@@ -26,6 +26,9 @@ class Opportunities extends Table {
 
   TextColumn get link => text().nullable()();
 
+  /// 1–3 rating; null = unrated.
+  IntColumn get leadQuality => integer().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
 
   DateTimeColumn get updatedAt => dateTime()();
