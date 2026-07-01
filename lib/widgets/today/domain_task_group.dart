@@ -4,7 +4,7 @@ import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_theme.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/domain_icons.dart';
-import 'package:ciaraos/widgets/tasks/task_list_tile.dart';
+import 'package:ciaraos/widgets/today/today_task_row.dart';
 import 'package:flutter/material.dart';
 
 class DomainTaskGroup extends StatelessWidget {
@@ -31,40 +31,29 @@ class DomainTaskGroup extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(
-              domainIcon(domain),
-              size: AppSpacing.md,
-              color: domainColor,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                domainLabel(domain),
-                style: AppTypography.labelLarge.copyWith(
-                  color: domainColor,
-                  letterSpacing: 1.2,
-                ),
+            Container(
+              width: AppSpacing.domainBarWidth,
+              height: AppSpacing.domainBarWidth,
+              decoration: BoxDecoration(
+                color: domainColor,
+                shape: BoxShape.circle,
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
             Text(
-              '${tasks.length} ITEMS',
+              domainLabel(domain),
               style: AppTypography.labelLarge.copyWith(
                 color: colorScheme.onSurfaceVariant,
+                letterSpacing: 1.5,
               ),
             ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Divider(
-          color: domainColor.withValues(alpha: 0.3),
-          thickness: 1,
-          height: 1,
-        ),
-        const SizedBox(height: AppSpacing.sm),
         ...tasks.map(
           (task) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-            child: TaskListTile(
+            padding: const EdgeInsets.only(bottom: AppSpacing.executionGap),
+            child: TodayTaskRow(
               task: task,
               onTap: () => onTaskTap(task),
               onStartedToggle: () => onStartedToggle(task),

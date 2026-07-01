@@ -1,6 +1,7 @@
 import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/focus_session_provider.dart';
 import 'package:ciaraos/providers/task_providers.dart';
+import 'package:ciaraos/providers/today_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/utils/today_task_grouper.dart';
 import 'package:ciaraos/widgets/common/empty_state.dart';
@@ -29,11 +30,18 @@ class TodayTaskListSection extends ConsumerWidget {
       updatedAt: DateTime.now(),
     );
     await repository.update(updated.toCompanion());
+    ref.invalidate(taskByIdProvider(task.id));
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tasksAsync = ref.watch(todayTasksProvider);
+    final tasksAsync = ref.watch(filteredTodayTasksProvider);
+    final allTodayAsync = ref.watch(todayTasksProvider);
+    final hasFilters = hasActiveTodayFilters(
+      domain: ref.watch(todayDomainFilterProvider),
+      deadline: ref.watch(todayDeadlineFilterProvider),
+      status: ref.watch(todayStatusFilterProvider),
+    );
 
     return tasksAsync.when(
       loading: () => const Padding(
@@ -42,17 +50,31 @@ class TodayTaskListSection extends ConsumerWidget {
       ),
       error: (error, _) => EmptyState(
         message: 'Could not load today tasks.',
-        actionLabel: 'GO TO BACKLOG',
+        actionLabel: 'REVIEW BACKLOG',
         onAction: () => context.go('/tasks'),
       ),
       data: (tasks) {
-        if (tasks.isEmpty) {
+        final allTodayCount = allTodayAsync.maybeWhen(
+          data: (all) => all.length,
+          orElse: () => 0,
+        );
+
+        if (allTodayCount == 0) {
           return EmptyState(
+            title: 'Your day is clear.',
             message:
-                "No tasks flagged for today. Add tasks and mark them 'Today' "
-                'from the backlog.',
-            actionLabel: 'GO TO BACKLOG',
+                'Focus on what matters. Deep work or a peaceful reflection '
+                'session awaits you.',
+            actionLabel: 'REVIEW BACKLOG',
             onAction: () => context.go('/tasks'),
+          );
+        }
+
+        if (tasks.isEmpty && hasFilters) {
+          return EmptyState(
+            message: 'No today tasks match the current filters.',
+            actionLabel: 'CLEAR FILTERS',
+            onAction: () => clearTodayFilters(ref),
           );
         }
 

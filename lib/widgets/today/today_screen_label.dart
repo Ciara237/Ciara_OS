@@ -17,7 +17,7 @@ class TodayScreenLabel extends StatelessWidget {
         Text(
           'EXECUTION VIEW',
           style: AppTypography.labelLarge.copyWith(
-            color: colorScheme.onSurfaceVariant,
+            color: colorScheme.primary,
             letterSpacing: 2,
           ),
         ),

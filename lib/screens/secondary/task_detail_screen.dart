@@ -2,7 +2,9 @@ import 'package:ciaraos/models/enums/priority.dart';
 import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/project.dart';
 import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/providers/daily_stats_providers.dart';
 import 'package:ciaraos/providers/focus_session_provider.dart';
+import 'package:ciaraos/services/daily_activity_stats.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_colors.dart';
@@ -147,6 +149,8 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           started: false,
         ),
       );
+      await DailyActivityStats.recordActiveDay();
+      ref.read(dailyStatsRevisionProvider.notifier).state++;
     } finally {
       if (mounted) {
         setState(() => _isUpdating = false);

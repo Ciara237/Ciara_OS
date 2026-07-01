@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:ciaraos/providers/daily_stats_providers.dart';
+import 'package:ciaraos/services/daily_activity_stats.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// In-memory focus timer for the currently tracked task.
@@ -47,6 +49,15 @@ class FocusSession {
 
 class FocusSessionNotifier extends Notifier<FocusSession> {
   Timer? _ticker;
+  int _dailyFlushedSeconds = 0;
+
+  /// Elapsed seconds in the active session not yet written to daily stats.
+  int get unflushedFocusSeconds {
+    if (!state.isActive) {
+      return 0;
+    }
+    return state.totalElapsedSeconds - _dailyFlushedSeconds;
+  }
 
   @override
   FocusSession build() {
@@ -74,6 +85,18 @@ class FocusSessionNotifier extends Notifier<FocusSession> {
     });
   }
 
+  Future<void> _flushToDaily() async {
+    final delta = unflushedFocusSeconds;
+    if (delta <= 0) {
+      return;
+    }
+
+    await DailyActivityStats.addFocusSeconds(delta);
+    await DailyActivityStats.recordActiveDay();
+    _dailyFlushedSeconds = state.totalElapsedSeconds;
+    ref.read(dailyStatsRevisionProvider.notifier).state++;
+  }
+
   void startForTask(int taskId) {
     if (state.taskId == taskId && state.isRunning) {
       return;
@@ -84,6 +107,11 @@ class FocusSessionNotifier extends Notifier<FocusSession> {
       return;
     }
 
+    if (state.isActive) {
+      _flushToDaily();
+    }
+
+    _dailyFlushedSeconds = 0;
     state = FocusSession(
       taskId: taskId,
       elapsedSeconds: 0,
@@ -97,9 +125,11 @@ class FocusSessionNotifier extends Notifier<FocusSession> {
       return;
     }
 
+    final total = state.totalElapsedSeconds;
+    _flushToDaily();
     state = FocusSession(
       taskId: state.taskId,
-      elapsedSeconds: state.totalElapsedSeconds,
+      elapsedSeconds: total,
     );
     _stopTicker();
   }
@@ -122,12 +152,16 @@ class FocusSessionNotifier extends Notifier<FocusSession> {
       return;
     }
 
+    _flushToDaily();
     _stopTicker();
+    _dailyFlushedSeconds = 0;
     state = FocusSession(taskId: state.taskId);
   }
 
   void clear() {
+    _flushToDaily();
     _stopTicker();
+    _dailyFlushedSeconds = 0;
     state = const FocusSession();
   }
 }
