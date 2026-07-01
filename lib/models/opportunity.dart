@@ -120,4 +120,39 @@ class Opportunity {
       updatedAt: Value(updatedAt),
     );
   }
+
+  Opportunity copyWith({
+    int? id,
+    String? title,
+    String? organization,
+    OpportunityType? type,
+    OpportunityStatus? status,
+    DateTime? deadline,
+    String? fitNotes,
+    List<OpportunityDocument>? documents,
+    int? documentsTotal,
+    int? documentsReady,
+    String? link,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool clearDeadline = false,
+    bool clearFitNotes = false,
+    bool clearLink = false,
+  }) {
+    return Opportunity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      organization: organization ?? this.organization,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      deadline: clearDeadline ? null : (deadline ?? this.deadline),
+      fitNotes: clearFitNotes ? null : (fitNotes ?? this.fitNotes),
+      documents: documents ?? this.documents,
+      documentsTotal: documentsTotal ?? this.documentsTotal,
+      documentsReady: documentsReady ?? this.documentsReady,
+      link: clearLink ? null : (link ?? this.link),
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
