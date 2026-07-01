@@ -5,6 +5,8 @@ import 'package:ciaraos/screens/primary/review_screen.dart';
 import 'package:ciaraos/screens/primary/tasks_screen.dart';
 import 'package:ciaraos/screens/primary/today_screen.dart';
 import 'package:ciaraos/screens/secondary/onboarding_screen.dart';
+import 'package:ciaraos/screens/secondary/opportunity_create_edit_screen.dart';
+import 'package:ciaraos/screens/secondary/opportunity_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/project_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/project_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/task_create_edit_screen.dart';
@@ -87,6 +89,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return ProjectDetailScreen(projectId: id);
+        },
+      ),
+      GoRoute(
+        path: '/opportunities/new',
+        builder: (context, state) => const OpportunityCreateEditScreen(),
+      ),
+      GoRoute(
+        path: '/opportunities/:id/edit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return OpportunityCreateEditScreen(opportunityId: id);
+        },
+      ),
+      GoRoute(
+        path: '/opportunities/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return OpportunityDetailScreen(opportunityId: id);
         },
       ),
     ],

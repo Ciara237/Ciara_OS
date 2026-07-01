@@ -10,3 +10,9 @@ final opportunityRepositoryProvider = Provider<OpportunityRepository>((ref) {
 final allOpportunitiesProvider = StreamProvider<List<Opportunity>>((ref) {
   return ref.watch(opportunityRepositoryProvider).watchAll();
 });
+
+final opportunityByIdProvider = FutureProvider.family<Opportunity?, int>(
+  (ref, id) {
+    return ref.watch(opportunityRepositoryProvider).getById(id);
+  },
+);
