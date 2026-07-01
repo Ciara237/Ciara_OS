@@ -1,6 +1,7 @@
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TodayHeader extends StatelessWidget {
   const TodayHeader({super.key});
@@ -33,13 +34,20 @@ class TodayHeader extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          CircleAvatar(
-            radius: AppSpacing.md,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Text(
-              'CM',
-              style: AppTypography.labelSmall.copyWith(
-                color: colorScheme.onPrimaryContainer,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push('/profile'),
+              customBorder: const CircleBorder(),
+              child: CircleAvatar(
+                radius: AppSpacing.md,
+                backgroundColor: colorScheme.primaryContainer,
+                child: Text(
+                  'CM',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ),
             ),
           ),

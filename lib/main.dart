@@ -1,4 +1,5 @@
 import 'package:ciaraos/providers/onboarding_provider.dart';
+import 'package:ciaraos/providers/theme_provider.dart';
 import 'package:ciaraos/router/app_router.dart';
 import 'package:ciaraos/services/onboarding_notifier.dart';
 import 'package:ciaraos/theme/app_theme.dart';
@@ -10,11 +11,13 @@ Future<void> main() async {
 
   final onboardingNotifier = OnboardingNotifier();
   await onboardingNotifier.load();
+  final themeMode = await loadPersistedThemeMode();
 
   runApp(
     ProviderScope(
       overrides: [
         onboardingNotifierProvider.overrideWithValue(onboardingNotifier),
+        themeModeProvider.overrideWith((ref) => themeMode),
       ],
       child: const CiaraOsApp(),
     ),
@@ -28,10 +31,11 @@ class CiaraOsApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'Ciara OS',
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
