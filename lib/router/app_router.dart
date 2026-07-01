@@ -5,6 +5,8 @@ import 'package:ciaraos/screens/primary/review_screen.dart';
 import 'package:ciaraos/screens/primary/tasks_screen.dart';
 import 'package:ciaraos/screens/primary/today_screen.dart';
 import 'package:ciaraos/screens/secondary/onboarding_screen.dart';
+import 'package:ciaraos/screens/secondary/project_create_edit_screen.dart';
+import 'package:ciaraos/screens/secondary/project_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/task_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/task_detail_screen.dart';
 import 'package:ciaraos/widgets/navigation/primary_shell.dart';
@@ -74,6 +76,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return TaskDetailScreen(taskId: id);
+        },
+      ),
+      GoRoute(
+        path: '/projects/new',
+        builder: (context, state) => const ProjectCreateEditScreen(),
+      ),
+      GoRoute(
+        path: '/projects/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ProjectDetailScreen(projectId: id);
         },
       ),
     ],
