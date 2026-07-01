@@ -40,4 +40,8 @@ class WeeklyReviewRepository {
       ),
     );
   }
+
+  Future<void> deleteAll() {
+    return _db.delete(_db.weeklyReviews).go();
+  }
 }

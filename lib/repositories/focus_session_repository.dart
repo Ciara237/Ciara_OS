@@ -191,4 +191,8 @@ class FocusSessionRepository {
   Future<void> discardSession(FocusSessionRecord session) async {
     await deleteSession(session.id);
   }
+
+  Future<void> deleteAll() {
+    return _db.delete(_db.focusSessions).go();
+  }
 }

@@ -7,6 +7,7 @@ import 'package:ciaraos/screens/primary/today_screen.dart';
 import 'package:ciaraos/screens/secondary/onboarding_screen.dart';
 import 'package:ciaraos/screens/secondary/opportunity_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/opportunity_detail_screen.dart';
+import 'package:ciaraos/screens/secondary/settings_screen.dart';
 import 'package:ciaraos/screens/secondary/profile_screen.dart';
 import 'package:ciaraos/screens/secondary/project_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/project_detail_screen.dart';
@@ -69,6 +70,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ReviewScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/profile',

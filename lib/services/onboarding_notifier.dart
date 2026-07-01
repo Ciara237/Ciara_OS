@@ -24,4 +24,11 @@ class OnboardingNotifier extends ChangeNotifier {
     _isComplete = true;
     notifyListeners();
   }
+
+  Future<void> reset() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(kOnboardingCompleteKey, false);
+    _isComplete = false;
+    notifyListeners();
+  }
 }

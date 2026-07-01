@@ -35,4 +35,8 @@ class ProjectRepository {
     return (_db.delete(_db.projects)..where((project) => project.id.equals(id)))
         .go();
   }
+
+  Future<void> deleteAll() {
+    return _db.delete(_db.projects).go();
+  }
 }

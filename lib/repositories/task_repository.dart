@@ -44,6 +44,10 @@ class TaskRepository {
     return (_db.delete(_db.tasks)..where((task) => task.id.equals(id))).go();
   }
 
+  Future<void> deleteAll() {
+    return _db.delete(_db.tasks).go();
+  }
+
   Future<List<Task>> getTasksCompletedInWeek(DateTime weekStart) async {
     final normalizedStart = DateTime(
       weekStart.year,

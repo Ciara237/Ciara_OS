@@ -34,6 +34,13 @@ class TodayHeader extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
+          IconButton(
+            onPressed: () => context.push('/settings'),
+            icon: Icon(
+              Icons.settings_outlined,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
           Material(
             color: Colors.transparent,
             child: InkWell(

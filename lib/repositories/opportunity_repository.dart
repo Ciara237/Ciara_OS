@@ -46,4 +46,8 @@ class OpportunityRepository {
     return (_db.delete(_db.opportunities)..where((row) => row.id.equals(id)))
         .go();
   }
+
+  Future<void> deleteAll() {
+    return _db.delete(_db.opportunities).go();
+  }
 }
