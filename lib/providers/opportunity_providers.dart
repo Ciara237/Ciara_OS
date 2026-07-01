@@ -38,3 +38,9 @@ final activeOpportunitiesCountProvider = Provider<AsyncValue<int>>((ref) {
             .length,
       );
 });
+
+final opportunityByIdProvider = FutureProvider.family<Opportunity?, int>(
+  (ref, id) {
+    return ref.read(opportunityRepositoryProvider).getById(id);
+  },
+);

@@ -96,6 +96,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OpportunityCreateEditScreen(),
       ),
       GoRoute(
+        path: '/opportunities/:id/edit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return OpportunityCreateEditScreen(opportunityId: id);
+        },
+      ),
+      GoRoute(
         path: '/opportunities/:id',
         builder: (context, state) {
           final id = state.pathParameters['id']!;

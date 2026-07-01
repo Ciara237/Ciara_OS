@@ -21,7 +21,12 @@ final todayTasksProvider = StreamProvider<List<Task>>((ref) {
 
 final weekTasksProvider = FutureProvider.family<List<Task>, DateTime>(
   (ref, weekStart) async {
-    return ref.watch(taskRepositoryProvider).getTasksForWeek(weekStart);
+    final normalizedStart = DateTime(
+      weekStart.year,
+      weekStart.month,
+      weekStart.day,
+    );
+    return ref.read(taskRepositoryProvider).getTasksForWeek(normalizedStart);
   },
 );
 

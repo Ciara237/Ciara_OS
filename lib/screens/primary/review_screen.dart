@@ -152,127 +152,137 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final thisWeekTasks = ref.watch(weekTasksProvider(currentMonday));
     final lastWeekTasks = ref.watch(weekTasksProvider(previousMonday));
 
+    final tasks = thisWeekTasks.value ?? const [];
+    final lastWeekData = lastWeekTasks.value ?? const [];
+    final statsLoadFailed = thisWeekTasks.hasError || lastWeekTasks.hasError;
+    final isLoading = thisWeekTasks.isLoading && !thisWeekTasks.hasValue;
+
+    if (isLoading) {
+      return ColoredBox(
+        color: colorScheme.surface,
+        child: const Column(
+          children: [
+            TodayHeader(),
+            Expanded(child: Center(child: CircularProgressIndicator())),
+          ],
+        ),
+      );
+    }
+
+    final hasPriorWeekData = lastWeekData.isNotEmpty;
+    final startedRate = tasks.isEmpty ? null : startedRateForTasks(tasks);
+    final focusScorePercent =
+        ((startedRate ?? 0) * 100).round().clamp(0, 100);
+    final deltaPercent = hasPriorWeekData
+        ? (startedRateForTasks(tasks) - startedRateForTasks(lastWeekData)) * 100
+        : null;
+    final dailyRates = dailyStartedRates(tasks, currentMonday);
+    final todayIndex = todayWeekdayIndex(currentMonday);
+
     return ColoredBox(
       color: colorScheme.surface,
       child: Column(
         children: [
           const TodayHeader(),
           Expanded(
-            child: thisWeekTasks.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Text(
-                  'Could not load weekly stats.',
-                  style: AppTypography.bodyLarge.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
+              children: [
+                if (statsLoadFailed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Text(
+                      'Could not load weekly stats. Showing empty week.',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ReviewScreenLabel(
+                  focusScorePercent: focusScorePercent,
+                  deltaPercent: deltaPercent,
+                  hasPriorWeekData: hasPriorWeekData,
+                  insightText: insightForDelta(deltaPercent),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                WeeklyBarChart(
+                  dailyRates: dailyRates,
+                  todayIndex: todayIndex,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton(
+                    onPressed: _exportLogs,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.onSurfaceVariant,
+                      side: BorderSide(color: colorScheme.onSurfaceVariant),
+                    ),
+                    child: const Text('↓ EXPORT LOGS'),
                   ),
                 ),
-              ),
-              data: (tasks) {
-                final lastWeekData = lastWeekTasks.value ?? const [];
-                final hasPriorWeekData = lastWeekData.isNotEmpty;
-                final startedRate = tasks.isEmpty ? null : startedRateForTasks(tasks);
-                final focusScorePercent =
-                    ((startedRate ?? 0) * 100).round().clamp(0, 100);
-                final deltaPercent = hasPriorWeekData
-                    ? (startedRateForTasks(tasks) -
-                            startedRateForTasks(lastWeekData)) *
-                        100
-                    : null;
-                final dailyRates = dailyStartedRates(tasks, currentMonday);
-                final todayIndex = todayWeekdayIndex(currentMonday);
-
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.lg,
-                    AppSpacing.xxl,
+                const SizedBox(height: AppSpacing.xl),
+                ReflectionCard(
+                  icon: Icons.check_circle_outline,
+                  iconColor: _reflectionWorkedColor,
+                  label: 'What Worked?',
+                  hint:
+                      'Document the wins, the completed sprints, and the systems that held firm...',
+                  controller: _whatWorkedController,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                ReflectionCard(
+                  icon: Icons.cancel_outlined,
+                  iconColor: colorScheme.error,
+                  label: 'What Failed?',
+                  labelColor: colorScheme.error,
+                  hint:
+                      'Analyze the friction points, the missed targets, and the external distractions...',
+                  controller: _whatFailedController,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                ReflectionCard(
+                  icon: Icons.bolt,
+                  iconColor: _reflectionAutomateColor,
+                  label: 'Automatic Systems?',
+                  hint:
+                      'Identify repetitive tasks that should be scripted, delegated, or standardized...',
+                  controller: _whatToAutomateController,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                ReflectionCard(
+                  icon: Icons.content_cut,
+                  iconColor: colorScheme.onSurfaceVariant,
+                  label: 'What Should Be Cut?',
+                  hint:
+                      'Locate the low-value activities and the energy vampires. What stops today?',
+                  controller: _whatToCutController,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                NextActionsChecklist(
+                  items: _nextActions,
+                  newActionController: _newActionController,
+                  onToggle: _toggleNextAction,
+                  onAdd: _addNextAction,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                AdvisoryCallout(
+                  bodyText: advisoryForStartedRate(startedRate),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                LockReflectionButton(
+                  onLock: () => _lockReflection(
+                    startedRate: startedRate ?? 0,
+                    totalTasks: tasks.length,
+                    startedTasks: tasks.where((task) => task.started).length,
                   ),
-                  children: [
-                    ReviewScreenLabel(
-                      focusScorePercent: focusScorePercent,
-                      deltaPercent: deltaPercent,
-                      hasPriorWeekData: hasPriorWeekData,
-                      insightText: insightForDelta(deltaPercent),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    WeeklyBarChart(
-                      dailyRates: dailyRates,
-                      todayIndex: todayIndex,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton(
-                        onPressed: _exportLogs,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.onSurfaceVariant,
-                          side: BorderSide(color: colorScheme.onSurfaceVariant),
-                        ),
-                        child: const Text('↓ EXPORT LOGS'),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    ReflectionCard(
-                      icon: Icons.check_circle_outline,
-                      iconColor: _reflectionWorkedColor,
-                      label: 'What Worked?',
-                      hint:
-                          'Document the wins, the completed sprints, and the systems that held firm...',
-                      controller: _whatWorkedController,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.cancel_outlined,
-                      iconColor: colorScheme.error,
-                      label: 'What Failed?',
-                      labelColor: colorScheme.error,
-                      hint:
-                          'Analyze the friction points, the missed targets, and the external distractions...',
-                      controller: _whatFailedController,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.bolt,
-                      iconColor: _reflectionAutomateColor,
-                      label: 'Automatic Systems?',
-                      hint:
-                          'Identify repetitive tasks that should be scripted, delegated, or standardized...',
-                      controller: _whatToAutomateController,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.content_cut,
-                      iconColor: colorScheme.onSurfaceVariant,
-                      label: 'What Should Be Cut?',
-                      hint:
-                          'Locate the low-value activities and the energy vampires. What stops today?',
-                      controller: _whatToCutController,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    NextActionsChecklist(
-                      items: _nextActions,
-                      newActionController: _newActionController,
-                      onToggle: _toggleNextAction,
-                      onAdd: _addNextAction,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    AdvisoryCallout(
-                      bodyText: advisoryForStartedRate(startedRate),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    LockReflectionButton(
-                      onLock: () => _lockReflection(
-                        startedRate: startedRate ?? 0,
-                        totalTasks: tasks.length,
-                        startedTasks:
-                            tasks.where((task) => task.started).length,
-                      ),
-                    ),
-                  ],
-                );
-              },
+                ),
+              ],
             ),
           ),
         ],

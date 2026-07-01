@@ -45,11 +45,17 @@ class TaskRepository {
   }
 
   Future<List<Task>> getTasksForWeek(DateTime weekStart) async {
-    final normalized = DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final weekEnd = normalized.add(const Duration(days: 7));
-    final rows = await (_db.select(_db.tasks)
-          ..where((task) => task.createdAt.isBiggerOrEqualValue(normalized))
-          ..where((task) => task.createdAt.isSmallerThanValue(weekEnd)))
+    final normalizedStart = DateTime(
+      weekStart.year,
+      weekStart.month,
+      weekStart.day,
+    );
+    final normalizedEnd = normalizedStart.add(const Duration(days: 7));
+    final rows = await (_db.select(_db.tasks)..where(
+          (task) =>
+              task.createdAt.isBiggerOrEqualValue(normalizedStart) &
+              task.createdAt.isSmallerThanValue(normalizedEnd),
+        ))
         .get();
     return rows.map(Task.fromRow).toList();
   }
