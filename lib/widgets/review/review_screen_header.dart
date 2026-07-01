@@ -2,6 +2,8 @@ import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
+const _reviewHeaderWideBreakpoint = 768.0;
+
 class ReviewScreenHeader extends StatelessWidget {
   const ReviewScreenHeader({
     super.key,
@@ -15,16 +17,18 @@ class ReviewScreenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final isWide =
+        MediaQuery.sizeOf(context).width >= _reviewHeaderWideBreakpoint;
 
     final titleSection = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Weekly Review',
-          style: AppTypography.headingLarge.copyWith(
-            color: colorScheme.onSurface,
-          ),
+          style: (isWide
+                  ? AppTypography.headingLarge
+                  : AppTypography.headingMedium)
+              .copyWith(color: colorScheme.onSurface),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
@@ -36,10 +40,8 @@ class ReviewScreenHeader extends StatelessWidget {
       ],
     );
 
-    final actions = Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.sm,
-      alignment: WrapAlignment.end,
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         OutlinedButton(
           onPressed: onExport,
@@ -50,17 +52,20 @@ class ReviewScreenHeader extends StatelessWidget {
               horizontal: AppSpacing.md,
               vertical: AppSpacing.sm,
             ),
+            minimumSize: const Size(0, 36),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
           ),
           child: Text(
             'Export Report',
-            style: AppTypography.labelSmall.copyWith(
+            style: AppTypography.labelLarge.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
         ),
+        const SizedBox(width: AppSpacing.md),
         FilledButton(
           onPressed: onFinalize,
           style: FilledButton.styleFrom(
@@ -70,13 +75,15 @@ class ReviewScreenHeader extends StatelessWidget {
               horizontal: AppSpacing.md,
               vertical: AppSpacing.sm,
             ),
+            minimumSize: const Size(0, 36),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
           ),
           child: Text(
             'Finalize Review',
-            style: AppTypography.labelSmall.copyWith(
+            style: AppTypography.labelLarge.copyWith(
               color: colorScheme.onPrimary,
             ),
           ),
@@ -95,7 +102,7 @@ class ReviewScreenHeader extends StatelessWidget {
     }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         titleSection,
         const SizedBox(height: AppSpacing.lg),
