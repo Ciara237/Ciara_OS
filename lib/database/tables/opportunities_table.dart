@@ -7,6 +7,8 @@ class Opportunities extends Table {
 
   TextColumn get organization => text()();
 
+  TextColumn get location => text().withDefault(const Constant(''))();
+
   TextColumn get type => text()();
 
   TextColumn get status =>

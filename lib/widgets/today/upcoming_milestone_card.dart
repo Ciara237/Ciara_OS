@@ -3,13 +3,12 @@ import 'package:ciaraos/models/project.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/utils/project_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UpcomingMilestoneCard extends ConsumerWidget {
   const UpcomingMilestoneCard({super.key});
-
-  static const int _proxyHorizonDays = 30;
 
   static Project? nearestActiveProject(List<Project> projects) {
     final active = projects
@@ -20,16 +19,9 @@ class UpcomingMilestoneCard extends ConsumerWidget {
     }
 
     active.sort((a, b) {
-      final remainingA = _remainingDays(a);
-      final remainingB = _remainingDays(b);
-      return remainingA.compareTo(remainingB);
+      return projectRemainingDays(a).compareTo(projectRemainingDays(b));
     });
     return active.first;
-  }
-
-  static int _remainingDays(Project project) {
-    final elapsed = DateTime.now().difference(project.updatedAt).inDays;
-    return (_proxyHorizonDays - elapsed).clamp(0, _proxyHorizonDays);
   }
 
   @override
@@ -82,7 +74,7 @@ class UpcomingMilestoneCard extends ConsumerWidget {
                 );
               }
 
-              final remaining = _remainingDays(project);
+              final remaining = projectRemainingDays(project);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

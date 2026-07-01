@@ -140,3 +140,43 @@ String relativeTimeLabel(DateTime dateTime) {
   }
   return DateFormat('MMM d, yyyy').format(dateTime);
 }
+
+final _applicationEmailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+/// Accepts `https://` / `http://` URLs, `mailto:` links, or plain emails.
+bool isValidApplicationLink(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) {
+    return false;
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return Uri.tryParse(trimmed) != null;
+  }
+
+  if (trimmed.startsWith('mailto:')) {
+    return _applicationEmailPattern.hasMatch(trimmed.substring(7).trim());
+  }
+
+  return _applicationEmailPattern.hasMatch(trimmed);
+}
+
+/// Builds a launchable URI for a stored application link.
+Uri? applicationLinkUri(String? link) {
+  if (link == null || link.trim().isEmpty) {
+    return null;
+  }
+
+  final trimmed = link.trim();
+  if (trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('mailto:')) {
+    return Uri.tryParse(trimmed);
+  }
+
+  if (_applicationEmailPattern.hasMatch(trimmed)) {
+    return Uri(scheme: 'mailto', path: trimmed);
+  }
+
+  return null;
+}

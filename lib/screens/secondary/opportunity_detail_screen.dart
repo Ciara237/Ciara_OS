@@ -365,6 +365,25 @@ class _OpportunityTopSection extends StatelessWidget {
             color: colorScheme.onSurfaceVariant,
           ),
         ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          children: [
+            Icon(
+              Icons.location_on_outlined,
+              size: AppSpacing.lg,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                opportunity.location,
+                style: AppTypography.bodyLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

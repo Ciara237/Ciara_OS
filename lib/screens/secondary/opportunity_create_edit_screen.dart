@@ -28,6 +28,7 @@ class _OpportunityCreateEditScreenState
     extends ConsumerState<OpportunityCreateEditScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _organizationController;
+  late final TextEditingController _locationController;
   late final TextEditingController _fitNotesController;
   late final TextEditingController _linkController;
   late final TextEditingController _newDocumentController;
@@ -40,6 +41,7 @@ class _OpportunityCreateEditScreenState
   bool _isSaving = false;
   bool _titleError = false;
   bool _organizationError = false;
+  bool _locationError = false;
   bool _typeError = false;
   bool _linkError = false;
   bool _didPopulate = false;
@@ -50,6 +52,7 @@ class _OpportunityCreateEditScreenState
     super.initState();
     _titleController = TextEditingController();
     _organizationController = TextEditingController();
+    _locationController = TextEditingController();
     _fitNotesController = TextEditingController();
     _linkController = TextEditingController();
     _newDocumentController = TextEditingController();
@@ -59,6 +62,7 @@ class _OpportunityCreateEditScreenState
   void dispose() {
     _titleController.dispose();
     _organizationController.dispose();
+    _locationController.dispose();
     _fitNotesController.dispose();
     _linkController.dispose();
     _newDocumentController.dispose();
@@ -68,6 +72,7 @@ class _OpportunityCreateEditScreenState
   void _populateFromOpportunity(Opportunity opportunity) {
     _titleController.text = opportunity.title;
     _organizationController.text = opportunity.organization;
+    _locationController.text = opportunity.location;
     _fitNotesController.text = opportunity.fitNotes ?? '';
     _linkController.text = opportunity.link ?? '';
     _selectedType = opportunity.type;
@@ -76,10 +81,6 @@ class _OpportunityCreateEditScreenState
     _documents = [...opportunity.documents];
     _leadQuality = opportunity.leadQuality;
     _createdAt = opportunity.createdAt;
-  }
-
-  bool _isValidUrl(String value) {
-    return value.startsWith('http://') || value.startsWith('https://');
   }
 
   Future<void> _pickDeadline() async {
@@ -123,19 +124,23 @@ class _OpportunityCreateEditScreenState
   Future<void> _save() async {
     final title = _titleController.text.trim();
     final organization = _organizationController.text.trim();
+    final location = _locationController.text.trim();
     final link = _linkController.text.trim();
     final hasTitleError = title.isEmpty;
     final hasOrganizationError = organization.isEmpty;
+    final hasLocationError = location.isEmpty;
     final hasTypeError = _selectedType == null;
-    final hasLinkError = link.isNotEmpty && !_isValidUrl(link);
+    final hasLinkError = link.isNotEmpty && !isValidApplicationLink(link);
 
     if (hasTitleError ||
         hasOrganizationError ||
+        hasLocationError ||
         hasTypeError ||
         hasLinkError) {
       setState(() {
         _titleError = hasTitleError;
         _organizationError = hasOrganizationError;
+        _locationError = hasLocationError;
         _typeError = hasTypeError;
         _linkError = hasLinkError;
       });
@@ -145,6 +150,7 @@ class _OpportunityCreateEditScreenState
     setState(() {
       _titleError = false;
       _organizationError = false;
+      _locationError = false;
       _typeError = false;
       _linkError = false;
       _isSaving = true;
@@ -161,6 +167,7 @@ class _OpportunityCreateEditScreenState
           id: int.parse(widget.opportunityId!),
           title: title,
           organization: organization,
+          location: location,
           type: _selectedType!,
           status: _selectedStatus,
           deadline: _selectedDeadline,
@@ -174,11 +181,13 @@ class _OpportunityCreateEditScreenState
           updatedAt: now,
         );
         await repository.update(opportunity.toCompanion());
+        ref.invalidate(opportunityByIdProvider(opportunity.id));
       } else {
         final opportunity = Opportunity(
           id: 0,
           title: title,
           organization: organization,
+          location: location,
           type: _selectedType!,
           status: _selectedStatus,
           deadline: _selectedDeadline,
@@ -254,17 +263,12 @@ class _OpportunityCreateEditScreenState
     if (widget.isEditMode) {
       final opportunityId = int.parse(widget.opportunityId!);
       final opportunityAsync = ref.watch(opportunityByIdProvider(opportunityId));
+      final opportunity = opportunityAsync.value;
 
-      ref.listen(opportunityByIdProvider(opportunityId), (previous, next) {
-        next.whenData((opportunity) {
-          if (opportunity != null && !_didPopulate && mounted) {
-            setState(() {
-              _didPopulate = true;
-              _populateFromOpportunity(opportunity);
-            });
-          }
-        });
-      });
+      if (opportunity != null && !_didPopulate) {
+        _didPopulate = true;
+        _populateFromOpportunity(opportunity);
+      }
 
       if (opportunityAsync.isLoading && !_didPopulate) {
         return Scaffold(
@@ -364,6 +368,34 @@ class _OpportunityCreateEditScreenState
                     ),
                   ],
                   const SizedBox(height: AppSpacing.lg),
+                  const _FormFieldLabel(text: 'LOCATION'),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _locationController,
+                    maxLines: 1,
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                    decoration: _fieldDecoration(
+                      context,
+                      hint: 'e.g. London, UK · Remote · Hybrid',
+                    ),
+                    onChanged: (_) {
+                      if (_locationError) {
+                        setState(() => _locationError = false);
+                      }
+                    },
+                  ),
+                  if (_locationError) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Location is required',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.lg),
                   const _FormFieldLabel(text: 'TYPE'),
                   const SizedBox(height: AppSpacing.sm),
                   _OpportunityTypeChipRow(
@@ -431,13 +463,13 @@ class _OpportunityCreateEditScreenState
                   TextField(
                     controller: _linkController,
                     maxLines: 1,
-                    keyboardType: TextInputType.url,
+                    keyboardType: TextInputType.text,
                     style: AppTypography.bodyLarge.copyWith(
                       color: colorScheme.onSurface,
                     ),
                     decoration: _fieldDecoration(
                       context,
-                      hint: 'https://...',
+                      hint: 'https://... or name@company.com',
                     ),
                     onChanged: (_) {
                       if (_linkError) {
@@ -448,7 +480,7 @@ class _OpportunityCreateEditScreenState
                   if (_linkError) ...[
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Enter a valid URL (https://...)',
+                      'Enter a valid URL (https://...) or email address',
                       style: AppTypography.bodyMedium.copyWith(
                         color: colorScheme.error,
                       ),

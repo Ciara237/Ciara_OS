@@ -48,6 +48,7 @@ class Opportunity {
     required this.id,
     required this.title,
     required this.organization,
+    required this.location,
     required this.type,
     required this.status,
     this.deadline,
@@ -64,6 +65,7 @@ class Opportunity {
   final int id;
   final String title;
   final String organization;
+  final String location;
   final OpportunityType type;
   final OpportunityStatus status;
   final DateTime? deadline;
@@ -81,6 +83,7 @@ class Opportunity {
       id: row.id,
       title: row.title,
       organization: row.organization,
+      location: row.location,
       type: OpportunityType.values.byName(row.type),
       status: OpportunityStatus.values.byName(row.status),
       deadline: row.deadline,
@@ -123,6 +126,7 @@ class Opportunity {
       id: forInsert ? const Value.absent() : Value(id),
       title: Value(title),
       organization: Value(organization),
+      location: Value(location),
       type: Value(type.name),
       status: Value(status.name),
       deadline: Value(deadline),
@@ -141,6 +145,7 @@ class Opportunity {
     int? id,
     String? title,
     String? organization,
+    String? location,
     OpportunityType? type,
     OpportunityStatus? status,
     DateTime? deadline,
@@ -161,6 +166,7 @@ class Opportunity {
       id: id ?? this.id,
       title: title ?? this.title,
       organization: organization ?? this.organization,
+      location: location ?? this.location,
       type: type ?? this.type,
       status: status ?? this.status,
       deadline: clearDeadline ? null : (deadline ?? this.deadline),

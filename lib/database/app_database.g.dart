@@ -82,6 +82,17 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _timeAllocationDaysMeta =
+      const VerificationMeta('timeAllocationDays');
+  @override
+  late final GeneratedColumn<int> timeAllocationDays = GeneratedColumn<int>(
+    'time_allocation_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -113,6 +124,7 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
     nextAction,
     externalLink,
     description,
+    timeAllocationDays,
     createdAt,
     updatedAt,
   ];
@@ -177,6 +189,15 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
         ),
       );
     }
+    if (data.containsKey('time_allocation_days')) {
+      context.handle(
+        _timeAllocationDaysMeta,
+        timeAllocationDays.isAcceptableOrUnknown(
+          data['time_allocation_days']!,
+          _timeAllocationDaysMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -230,6 +251,10 @@ class $ProjectsTable extends Projects with TableInfo<$ProjectsTable, Project> {
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
+      timeAllocationDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}time_allocation_days'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -255,6 +280,9 @@ class Project extends DataClass implements Insertable<Project> {
   final String? nextAction;
   final String? externalLink;
   final String? description;
+
+  /// Project horizon in days — used for milestone / time-remaining calculations.
+  final int timeAllocationDays;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Project({
@@ -265,6 +293,7 @@ class Project extends DataClass implements Insertable<Project> {
     this.nextAction,
     this.externalLink,
     this.description,
+    required this.timeAllocationDays,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -284,6 +313,7 @@ class Project extends DataClass implements Insertable<Project> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
+    map['time_allocation_days'] = Variable<int>(timeAllocationDays);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -304,6 +334,7 @@ class Project extends DataClass implements Insertable<Project> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      timeAllocationDays: Value(timeAllocationDays),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -322,6 +353,7 @@ class Project extends DataClass implements Insertable<Project> {
       nextAction: serializer.fromJson<String?>(json['nextAction']),
       externalLink: serializer.fromJson<String?>(json['externalLink']),
       description: serializer.fromJson<String?>(json['description']),
+      timeAllocationDays: serializer.fromJson<int>(json['timeAllocationDays']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -337,6 +369,7 @@ class Project extends DataClass implements Insertable<Project> {
       'nextAction': serializer.toJson<String?>(nextAction),
       'externalLink': serializer.toJson<String?>(externalLink),
       'description': serializer.toJson<String?>(description),
+      'timeAllocationDays': serializer.toJson<int>(timeAllocationDays),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -350,6 +383,7 @@ class Project extends DataClass implements Insertable<Project> {
     Value<String?> nextAction = const Value.absent(),
     Value<String?> externalLink = const Value.absent(),
     Value<String?> description = const Value.absent(),
+    int? timeAllocationDays,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Project(
@@ -360,6 +394,7 @@ class Project extends DataClass implements Insertable<Project> {
     nextAction: nextAction.present ? nextAction.value : this.nextAction,
     externalLink: externalLink.present ? externalLink.value : this.externalLink,
     description: description.present ? description.value : this.description,
+    timeAllocationDays: timeAllocationDays ?? this.timeAllocationDays,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -378,6 +413,9 @@ class Project extends DataClass implements Insertable<Project> {
       description: data.description.present
           ? data.description.value
           : this.description,
+      timeAllocationDays: data.timeAllocationDays.present
+          ? data.timeAllocationDays.value
+          : this.timeAllocationDays,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -393,6 +431,7 @@ class Project extends DataClass implements Insertable<Project> {
           ..write('nextAction: $nextAction, ')
           ..write('externalLink: $externalLink, ')
           ..write('description: $description, ')
+          ..write('timeAllocationDays: $timeAllocationDays, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -408,6 +447,7 @@ class Project extends DataClass implements Insertable<Project> {
     nextAction,
     externalLink,
     description,
+    timeAllocationDays,
     createdAt,
     updatedAt,
   );
@@ -422,6 +462,7 @@ class Project extends DataClass implements Insertable<Project> {
           other.nextAction == this.nextAction &&
           other.externalLink == this.externalLink &&
           other.description == this.description &&
+          other.timeAllocationDays == this.timeAllocationDays &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -434,6 +475,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
   final Value<String?> nextAction;
   final Value<String?> externalLink;
   final Value<String?> description;
+  final Value<int> timeAllocationDays;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const ProjectsCompanion({
@@ -444,6 +486,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     this.nextAction = const Value.absent(),
     this.externalLink = const Value.absent(),
     this.description = const Value.absent(),
+    this.timeAllocationDays = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -455,6 +498,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     this.nextAction = const Value.absent(),
     this.externalLink = const Value.absent(),
     this.description = const Value.absent(),
+    this.timeAllocationDays = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : name = Value(name),
@@ -469,6 +513,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     Expression<String>? nextAction,
     Expression<String>? externalLink,
     Expression<String>? description,
+    Expression<int>? timeAllocationDays,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -480,6 +525,8 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
       if (nextAction != null) 'next_action': nextAction,
       if (externalLink != null) 'external_link': externalLink,
       if (description != null) 'description': description,
+      if (timeAllocationDays != null)
+        'time_allocation_days': timeAllocationDays,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -493,6 +540,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     Value<String?>? nextAction,
     Value<String?>? externalLink,
     Value<String?>? description,
+    Value<int>? timeAllocationDays,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -504,6 +552,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
       nextAction: nextAction ?? this.nextAction,
       externalLink: externalLink ?? this.externalLink,
       description: description ?? this.description,
+      timeAllocationDays: timeAllocationDays ?? this.timeAllocationDays,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -533,6 +582,9 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
+    if (timeAllocationDays.present) {
+      map['time_allocation_days'] = Variable<int>(timeAllocationDays.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -552,6 +604,7 @@ class ProjectsCompanion extends UpdateCompanion<Project> {
           ..write('nextAction: $nextAction, ')
           ..write('externalLink: $externalLink, ')
           ..write('description: $description, ')
+          ..write('timeAllocationDays: $timeAllocationDays, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1336,6 +1389,18 @@ class $OpportunitiesTable extends Opportunities
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
@@ -1459,6 +1524,7 @@ class $OpportunitiesTable extends Opportunities
     id,
     title,
     organization,
+    location,
     type,
     status,
     deadline,
@@ -1504,6 +1570,12 @@ class $OpportunitiesTable extends Opportunities
       );
     } else if (isInserting) {
       context.missing(_organizationMeta);
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
     }
     if (data.containsKey('type')) {
       context.handle(
@@ -1607,6 +1679,10 @@ class $OpportunitiesTable extends Opportunities
         DriftSqlType.string,
         data['${effectivePrefix}organization'],
       )!,
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      )!,
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}type'],
@@ -1664,6 +1740,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
   final int id;
   final String title;
   final String organization;
+  final String location;
   final String type;
   final String status;
   final DateTime? deadline;
@@ -1681,6 +1758,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     required this.id,
     required this.title,
     required this.organization,
+    required this.location,
     required this.type,
     required this.status,
     this.deadline,
@@ -1699,6 +1777,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
     map['organization'] = Variable<String>(organization);
+    map['location'] = Variable<String>(location);
     map['type'] = Variable<String>(type);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || deadline != null) {
@@ -1728,6 +1807,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       id: Value(id),
       title: Value(title),
       organization: Value(organization),
+      location: Value(location),
       type: Value(type),
       status: Value(status),
       deadline: deadline == null && nullToAbsent
@@ -1759,6 +1839,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       organization: serializer.fromJson<String>(json['organization']),
+      location: serializer.fromJson<String>(json['location']),
       type: serializer.fromJson<String>(json['type']),
       status: serializer.fromJson<String>(json['status']),
       deadline: serializer.fromJson<DateTime?>(json['deadline']),
@@ -1779,6 +1860,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
       'organization': serializer.toJson<String>(organization),
+      'location': serializer.toJson<String>(location),
       'type': serializer.toJson<String>(type),
       'status': serializer.toJson<String>(status),
       'deadline': serializer.toJson<DateTime?>(deadline),
@@ -1797,6 +1879,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     int? id,
     String? title,
     String? organization,
+    String? location,
     String? type,
     String? status,
     Value<DateTime?> deadline = const Value.absent(),
@@ -1812,6 +1895,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     id: id ?? this.id,
     title: title ?? this.title,
     organization: organization ?? this.organization,
+    location: location ?? this.location,
     type: type ?? this.type,
     status: status ?? this.status,
     deadline: deadline.present ? deadline.value : this.deadline,
@@ -1831,6 +1915,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
       organization: data.organization.present
           ? data.organization.value
           : this.organization,
+      location: data.location.present ? data.location.value : this.location,
       type: data.type.present ? data.type.value : this.type,
       status: data.status.present ? data.status.value : this.status,
       deadline: data.deadline.present ? data.deadline.value : this.deadline,
@@ -1857,6 +1942,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('organization: $organization, ')
+          ..write('location: $location, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('deadline: $deadline, ')
@@ -1877,6 +1963,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
     id,
     title,
     organization,
+    location,
     type,
     status,
     deadline,
@@ -1896,6 +1983,7 @@ class Opportunity extends DataClass implements Insertable<Opportunity> {
           other.id == this.id &&
           other.title == this.title &&
           other.organization == this.organization &&
+          other.location == this.location &&
           other.type == this.type &&
           other.status == this.status &&
           other.deadline == this.deadline &&
@@ -1913,6 +2001,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
   final Value<int> id;
   final Value<String> title;
   final Value<String> organization;
+  final Value<String> location;
   final Value<String> type;
   final Value<String> status;
   final Value<DateTime?> deadline;
@@ -1928,6 +2017,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.organization = const Value.absent(),
+    this.location = const Value.absent(),
     this.type = const Value.absent(),
     this.status = const Value.absent(),
     this.deadline = const Value.absent(),
@@ -1944,6 +2034,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     this.id = const Value.absent(),
     required String title,
     required String organization,
+    this.location = const Value.absent(),
     required String type,
     this.status = const Value.absent(),
     this.deadline = const Value.absent(),
@@ -1964,6 +2055,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     Expression<int>? id,
     Expression<String>? title,
     Expression<String>? organization,
+    Expression<String>? location,
     Expression<String>? type,
     Expression<String>? status,
     Expression<DateTime>? deadline,
@@ -1980,6 +2072,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (organization != null) 'organization': organization,
+      if (location != null) 'location': location,
       if (type != null) 'type': type,
       if (status != null) 'status': status,
       if (deadline != null) 'deadline': deadline,
@@ -1998,6 +2091,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     Value<int>? id,
     Value<String>? title,
     Value<String>? organization,
+    Value<String>? location,
     Value<String>? type,
     Value<String>? status,
     Value<DateTime?>? deadline,
@@ -2014,6 +2108,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
       id: id ?? this.id,
       title: title ?? this.title,
       organization: organization ?? this.organization,
+      location: location ?? this.location,
       type: type ?? this.type,
       status: status ?? this.status,
       deadline: deadline ?? this.deadline,
@@ -2039,6 +2134,9 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
     }
     if (organization.present) {
       map['organization'] = Variable<String>(organization.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
@@ -2082,6 +2180,7 @@ class OpportunitiesCompanion extends UpdateCompanion<Opportunity> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('organization: $organization, ')
+          ..write('location: $location, ')
           ..write('type: $type, ')
           ..write('status: $status, ')
           ..write('deadline: $deadline, ')
@@ -2946,6 +3045,7 @@ typedef $$ProjectsTableCreateCompanionBuilder =
       Value<String?> nextAction,
       Value<String?> externalLink,
       Value<String?> description,
+      Value<int> timeAllocationDays,
       required DateTime createdAt,
       required DateTime updatedAt,
     });
@@ -2958,6 +3058,7 @@ typedef $$ProjectsTableUpdateCompanionBuilder =
       Value<String?> nextAction,
       Value<String?> externalLink,
       Value<String?> description,
+      Value<int> timeAllocationDays,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -3027,6 +3128,11 @@ class $$ProjectsTableFilterComposer
 
   ColumnFilters<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get timeAllocationDays => $composableBuilder(
+    column: $table.timeAllocationDays,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3110,6 +3216,11 @@ class $$ProjectsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get timeAllocationDays => $composableBuilder(
+    column: $table.timeAllocationDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3154,6 +3265,11 @@ class $$ProjectsTableAnnotationComposer
 
   GeneratedColumn<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get timeAllocationDays => $composableBuilder(
+    column: $table.timeAllocationDays,
     builder: (column) => column,
   );
 
@@ -3224,6 +3340,7 @@ class $$ProjectsTableTableManager
                 Value<String?> nextAction = const Value.absent(),
                 Value<String?> externalLink = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<int> timeAllocationDays = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => ProjectsCompanion(
@@ -3234,6 +3351,7 @@ class $$ProjectsTableTableManager
                 nextAction: nextAction,
                 externalLink: externalLink,
                 description: description,
+                timeAllocationDays: timeAllocationDays,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -3246,6 +3364,7 @@ class $$ProjectsTableTableManager
                 Value<String?> nextAction = const Value.absent(),
                 Value<String?> externalLink = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<int> timeAllocationDays = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
               }) => ProjectsCompanion.insert(
@@ -3256,6 +3375,7 @@ class $$ProjectsTableTableManager
                 nextAction: nextAction,
                 externalLink: externalLink,
                 description: description,
+                timeAllocationDays: timeAllocationDays,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -3774,6 +3894,7 @@ typedef $$OpportunitiesTableCreateCompanionBuilder =
       Value<int> id,
       required String title,
       required String organization,
+      Value<String> location,
       required String type,
       Value<String> status,
       Value<DateTime?> deadline,
@@ -3791,6 +3912,7 @@ typedef $$OpportunitiesTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> title,
       Value<String> organization,
+      Value<String> location,
       Value<String> type,
       Value<String> status,
       Value<DateTime?> deadline,
@@ -3825,6 +3947,11 @@ class $$OpportunitiesTableFilterComposer
 
   ColumnFilters<String> get organization => $composableBuilder(
     column: $table.organization,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3908,6 +4035,11 @@ class $$OpportunitiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
@@ -3984,6 +4116,9 @@ class $$OpportunitiesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
@@ -4058,6 +4193,7 @@ class $$OpportunitiesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String> organization = const Value.absent(),
+                Value<String> location = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<DateTime?> deadline = const Value.absent(),
@@ -4073,6 +4209,7 @@ class $$OpportunitiesTableTableManager
                 id: id,
                 title: title,
                 organization: organization,
+                location: location,
                 type: type,
                 status: status,
                 deadline: deadline,
@@ -4090,6 +4227,7 @@ class $$OpportunitiesTableTableManager
                 Value<int> id = const Value.absent(),
                 required String title,
                 required String organization,
+                Value<String> location = const Value.absent(),
                 required String type,
                 Value<String> status = const Value.absent(),
                 Value<DateTime?> deadline = const Value.absent(),
@@ -4105,6 +4243,7 @@ class $$OpportunitiesTableTableManager
                 id: id,
                 title: title,
                 organization: organization,
+                location: location,
                 type: type,
                 status: status,
                 deadline: deadline,
