@@ -108,7 +108,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/opportunities/new',
-        builder: (context, state) => const OpportunityCreateEditScreen(),
+        builder: (context, state) =>
+            const OpportunityCreateEditScreen(opportunityId: null),
       ),
       GoRoute(
         path: '/opportunities/:id/edit',

@@ -8,9 +8,13 @@ class OpportunityPipelineStepper extends StatelessWidget {
   const OpportunityPipelineStepper({
     super.key,
     required this.currentStatus,
+    this.onStageSelected,
+    this.showHeader = true,
   });
 
   final OpportunityStatus currentStatus;
+  final ValueChanged<OpportunityStatus>? onStageSelected;
+  final bool showHeader;
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +35,15 @@ class OpportunityPipelineStepper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'PIPELINE STATUS',
-            style: AppTypography.labelSmall.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          if (showHeader) ...[
+            Text(
+              'PIPELINE STATUS',
+              style: AppTypography.labelSmall.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
+          ],
           Row(
             children: [
               for (var i = 0; i < activeOpportunityPipeline.length; i++) ...[
@@ -59,6 +65,9 @@ class OpportunityPipelineStepper extends StatelessWidget {
                   isCurrent: i == currentIndex,
                   isFuture: currentIndex == -1 || i > currentIndex,
                   statusColor: statusColor,
+                  onTap: onStageSelected == null
+                      ? null
+                      : () => onStageSelected!(activeOpportunityPipeline[i]),
                 ),
               ],
             ],
@@ -88,6 +97,7 @@ class _StageDot extends StatelessWidget {
     required this.isCurrent,
     required this.isFuture,
     required this.statusColor,
+    this.onTap,
   });
 
   final String label;
@@ -95,6 +105,7 @@ class _StageDot extends StatelessWidget {
   final bool isCurrent;
   final bool isFuture;
   final Color statusColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -106,34 +117,44 @@ class _StageDot extends StatelessWidget {
 
     return SizedBox(
       width: 56,
-      child: Column(
-        children: [
-          Container(
-            width: dotSize,
-            height: dotSize,
-            decoration: BoxDecoration(
-              color: isFuture ? Colors.transparent : dotColor,
-              shape: BoxShape.circle,
-              border: isFuture
-                  ? Border.all(color: colorScheme.onSurfaceVariant, width: 1.5)
-                  : null,
-            ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          child: Column(
+            children: [
+              Container(
+                width: dotSize,
+                height: dotSize,
+                decoration: BoxDecoration(
+                  color: isFuture ? Colors.transparent : dotColor,
+                  shape: BoxShape.circle,
+                  border: isFuture
+                      ? Border.all(
+                          color: colorScheme.onSurfaceVariant,
+                          width: 1.5,
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: AppTypography.labelSmall.copyWith(
+                  color: isCurrent
+                      ? statusColor
+                      : colorScheme.onSurfaceVariant.withValues(
+                          alpha: isPast ? 0.7 : 1,
+                        ),
+                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: AppTypography.labelSmall.copyWith(
-              color: isCurrent
-                  ? statusColor
-                  : colorScheme.onSurfaceVariant.withValues(
-                      alpha: isPast ? 0.7 : 1,
-                    ),
-              fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
