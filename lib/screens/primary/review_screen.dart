@@ -1,21 +1,28 @@
+import 'package:ciaraos/models/enums/domain.dart';
+import 'package:ciaraos/models/weekly_debrief.dart';
 import 'package:ciaraos/models/weekly_review.dart';
-import 'package:ciaraos/providers/task_providers.dart';
+import 'package:ciaraos/providers/weekly_debrief_providers.dart';
 import 'package:ciaraos/providers/weekly_review_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/review_stats_utils.dart';
-import 'package:ciaraos/widgets/review/advisory_callout.dart';
+import 'package:ciaraos/widgets/review/execution_insights_panel.dart';
+import 'package:ciaraos/widgets/review/execution_summary_card.dart';
+import 'package:ciaraos/widgets/review/execution_timeline.dart';
 import 'package:ciaraos/widgets/review/next_actions_checklist.dart';
 import 'package:ciaraos/widgets/review/reflection_card.dart';
-import 'package:ciaraos/widgets/review/review_performance_section.dart';
 import 'package:ciaraos/widgets/review/review_screen_header.dart';
+import 'package:ciaraos/widgets/review/weekly_narrative_card.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Card-specific accent colors documented here (not domain/theme tokens).
-const _reflectionWorkedColor = Color(0xFF10B981);
-const _reflectionAutomateColor = Color(0xFFF59E0B);
+const _reflectionWorkedHint =
+    'Document the wins, the completed sprints, and the systems that held firm...';
+const _reflectionSlowedHint =
+    'Analyze the friction points, the missed targets, and the external distractions...';
+const _reflectionImprovementHint =
+    'One concrete change to protect execution quality next week...';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   const ReviewScreen({super.key});
@@ -26,30 +33,67 @@ class ReviewScreen extends ConsumerStatefulWidget {
 
 class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   late final TextEditingController _whatWorkedController;
-  late final TextEditingController _whatFailedController;
-  late final TextEditingController _whatToAutomateController;
-  late final TextEditingController _whatToCutController;
+  late final TextEditingController _whatSlowedController;
+  late final TextEditingController _improvementController;
   late final TextEditingController _newActionController;
   final List<NextActionItem> _nextActions = [];
+  bool _prioritiesSeeded = false;
+  bool _reflectionSeeded = false;
 
   @override
   void initState() {
     super.initState();
     _whatWorkedController = TextEditingController();
-    _whatFailedController = TextEditingController();
-    _whatToAutomateController = TextEditingController();
-    _whatToCutController = TextEditingController();
+    _whatSlowedController = TextEditingController();
+    _improvementController = TextEditingController();
     _newActionController = TextEditingController();
   }
 
   @override
   void dispose() {
     _whatWorkedController.dispose();
-    _whatFailedController.dispose();
-    _whatToAutomateController.dispose();
-    _whatToCutController.dispose();
+    _whatSlowedController.dispose();
+    _improvementController.dispose();
     _newActionController.dispose();
     super.dispose();
+  }
+
+  void _seedFromExistingReview(WeeklyReview? review) {
+    if (_reflectionSeeded || review == null) {
+      return;
+    }
+    _reflectionSeeded = true;
+    _whatWorkedController.text = review.whatWorked ?? '';
+    _whatSlowedController.text = review.whatSlowedDown ?? '';
+    _improvementController.text = review.improvementForNextWeek ?? '';
+    if (review.nextActions.isNotEmpty) {
+      _nextActions.addAll(
+        review.nextActions.map(
+          (text) => NextActionItem(text: text, checked: false),
+        ),
+      );
+      _prioritiesSeeded = true;
+    }
+  }
+
+  void _seedPriorities(List<SuggestedPriority> suggestions) {
+    if (_prioritiesSeeded || suggestions.isEmpty) {
+      return;
+    }
+    _prioritiesSeeded = true;
+    setState(() {
+      for (final suggestion in suggestions) {
+        _nextActions.add(
+          NextActionItem(
+            text: suggestion.title,
+            checked: false,
+            domain: suggestion.domainName == null
+                ? null
+                : Domain.values.byName(suggestion.domainName!),
+          ),
+        );
+      }
+    });
   }
 
   void _exportLogs() {
@@ -80,23 +124,23 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   bool _hasReflectionText() {
     return [
       _whatWorkedController,
-      _whatFailedController,
-      _whatToAutomateController,
-      _whatToCutController,
+      _whatSlowedController,
+      _improvementController,
     ].any((controller) => controller.text.trim().isNotEmpty);
   }
 
-  Future<void> _lockReflection({
-    required double startedRate,
-    required int totalTasks,
-    required int startedTasks,
-  }) async {
+  Future<void> _finalizeReview() async {
     if (!_hasReflectionText()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Add at least one reflection before locking.'),
+          content: Text('Add at least one reflection before finalizing.'),
         ),
       );
+      return;
+    }
+
+    final debrief = ref.read(weeklyDebriefProvider).value;
+    if (debrief == null) {
       return;
     }
 
@@ -114,14 +158,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       id: existing?.id ?? 0,
       weekOf: weekOf,
       whatWorked: trimmedOrNull(_whatWorkedController),
-      whatFailed: trimmedOrNull(_whatFailedController),
-      whatToAutomate: trimmedOrNull(_whatToAutomateController),
-      whatToCut: trimmedOrNull(_whatToCutController),
+      whatSlowedDown: trimmedOrNull(_whatSlowedController),
+      improvementForNextWeek: trimmedOrNull(_improvementController),
       nextActions: _nextActions.map((item) => item.text).toList(),
-      startedRate: startedRate,
-      totalTasks: totalTasks,
-      startedTasks: startedTasks,
-      focusScore: startedRate * 100,
+      startedRate: debrief.metrics.taskCompletionRate,
+      totalTasks: debrief.metrics.tasksInScope,
+      startedTasks: debrief.metrics.tasksCompleted,
+      focusScore: debrief.executionScore,
+      executionScore: debrief.executionScore,
+      weeklyNarrative: debrief.narrative,
+      insights: debrief.insights,
       locked: true,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
@@ -133,52 +179,27 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       await repository.update(review.toCompanion());
     }
 
+    ref.invalidate(currentWeekReviewProvider);
+    ref.invalidate(weeklyDebriefProvider);
+
     if (!mounted) {
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Weekly reflection locked.')),
+      const SnackBar(content: Text('Executive Debrief finalized.')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final currentMonday = mondayOfWeek(DateTime.now());
-    final previousMonday = currentMonday.subtract(const Duration(days: 7));
+    final debriefAsync = ref.watch(weeklyDebriefProvider);
+    final existingReviewAsync = ref.watch(currentWeekReviewProvider);
 
-    final thisWeekTasks = ref.watch(weekTasksProvider(currentMonday));
-    final lastWeekTasks = ref.watch(weekTasksProvider(previousMonday));
+    existingReviewAsync.whenData(_seedFromExistingReview);
 
-    final tasks = thisWeekTasks.value ?? const [];
-    final lastWeekData = lastWeekTasks.value ?? const [];
-    final statsLoadFailed = thisWeekTasks.hasError || lastWeekTasks.hasError;
-    final isLoading = thisWeekTasks.isLoading && !thisWeekTasks.hasValue;
-
-    if (isLoading) {
-      return ColoredBox(
-        color: colorScheme.surface,
-        child: const Column(
-          children: [
-            TodayHeader(),
-            Expanded(child: Center(child: CircularProgressIndicator())),
-          ],
-        ),
-      );
-    }
-
-    final hasPriorWeekData = lastWeekData.isNotEmpty;
-    final startedRate = tasks.isEmpty ? null : startedRateForTasks(tasks);
-    final focusScorePercent =
-        ((startedRate ?? 0) * 100).round().clamp(0, 100);
-    final deltaPercent = hasPriorWeekData
-        ? (startedRateForTasks(tasks) - startedRateForTasks(lastWeekData)) * 100
-        : null;
-    final dailyRates = dailyStartedRates(tasks, currentMonday);
-    final todayIndex = todayWeekdayIndex(currentMonday);
-
-    final isWide = MediaQuery.sizeOf(context).width >= 768;
+    final isWide = MediaQuery.sizeOf(context).width >= 1024;
     final horizontalPadding =
         isWide ? AppSpacing.reviewPadding : AppSpacing.lg;
 
@@ -188,101 +209,149 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         children: [
           const TodayHeader(),
           Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppSpacing.containerMax,
-                ),
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    horizontalPadding,
-                    AppSpacing.reviewPadding,
-                    horizontalPadding,
-                    AppSpacing.xxl,
+            child: debriefAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: Text(
+                  'Could not load execution data.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                  children: [
-                    if (statsLoadFailed)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: Text(
-                          'Could not load weekly stats. Showing empty week.',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ReviewScreenHeader(
-                      onExport: _exportLogs,
-                      onFinalize: () => _lockReflection(
-                        startedRate: startedRate ?? 0,
-                        totalTasks: tasks.length,
-                        startedTasks:
-                            tasks.where((task) => task.started).length,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReviewPerformanceSection(
-                      focusScorePercent: focusScorePercent,
-                      deltaPercent: deltaPercent,
-                      hasPriorWeekData: hasPriorWeekData,
-                      dailyRates: dailyRates,
-                      todayIndex: todayIndex,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.check_circle_outline,
-                      iconColor: _reflectionWorkedColor,
-                      label: 'What Worked?',
-                      hint:
-                          'Document the wins, the completed sprints, and the systems that held firm...',
-                      controller: _whatWorkedController,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.cancel_outlined,
-                      iconColor: colorScheme.error,
-                      label: 'What Failed?',
-                      labelColor: colorScheme.error,
-                      hint:
-                          'Analyze the friction points, the missed targets, and the external distractions...',
-                      controller: _whatFailedController,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.bolt,
-                      iconColor: _reflectionAutomateColor,
-                      label: 'Automatic Systems?',
-                      hint:
-                          'Identify repetitive tasks that should be scripted, delegated, or standardized...',
-                      controller: _whatToAutomateController,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ReflectionCard(
-                      icon: Icons.content_cut,
-                      iconColor: colorScheme.onSurfaceVariant,
-                      label: 'What Should Be Cut?',
-                      hint:
-                          'Locate the low-value activities and the energy vampires. What stops today?',
-                      controller: _whatToCutController,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    NextActionsChecklist(
-                      items: _nextActions,
-                      newActionController: _newActionController,
-                      onToggle: _toggleNextAction,
-                      onAdd: _addNextAction,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    AdvisoryCallout(
-                      bodyText: advisoryForStartedRate(startedRate),
-                    ),
-                  ],
                 ),
               ),
+              data: (debrief) {
+                _seedPriorities(debrief.suggestedPriorities);
+
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: AppSpacing.containerMax,
+                    ),
+                    child: ListView(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        AppSpacing.reviewPadding,
+                        horizontalPadding,
+                        AppSpacing.xxl,
+                      ),
+                      children: [
+                        ReviewScreenHeader(
+                          onExport: _exportLogs,
+                          onFinalize: _finalizeReview,
+                        ),
+                        const SizedBox(height: AppSpacing.reviewGap),
+                        ExecutionSummaryCard(debrief: debrief),
+                        const SizedBox(height: AppSpacing.reviewGap),
+                        ExecutionTimeline(days: debrief.metrics.timeline),
+                        const SizedBox(height: AppSpacing.reviewGap),
+                        WeeklyNarrativeCard(narrative: debrief.narrative),
+                        const SizedBox(height: AppSpacing.reviewGap),
+                        if (isWide)
+                          _wideReflectionRow(debrief)
+                        else
+                          _narrowReflectionColumn(debrief),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _wideReflectionRow(WeeklyDebrief debrief) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 8,
+          child: _reflectionGrid(isWide: true),
+        ),
+        const SizedBox(width: AppSpacing.reviewGap),
+        Expanded(
+          flex: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ExecutionInsightsPanel(insights: debrief.insights),
+              const SizedBox(height: AppSpacing.reviewGap),
+              NextActionsChecklist(
+                items: _nextActions,
+                newActionController: _newActionController,
+                onToggle: _toggleNextAction,
+                onAdd: _addNextAction,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _narrowReflectionColumn(WeeklyDebrief debrief) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _reflectionGrid(isWide: false),
+        const SizedBox(height: AppSpacing.reviewGap),
+        ExecutionInsightsPanel(insights: debrief.insights),
+        const SizedBox(height: AppSpacing.reviewGap),
+        NextActionsChecklist(
+          items: _nextActions,
+          newActionController: _newActionController,
+          onToggle: _toggleNextAction,
+          onAdd: _addNextAction,
+        ),
+      ],
+    );
+  }
+
+  Widget _reflectionGrid({required bool isWide}) {
+    final worked = ReflectionCard(
+      label: 'What went well?',
+      hint: _reflectionWorkedHint,
+      controller: _whatWorkedController,
+    );
+    final slowed = ReflectionCard(
+      label: 'What slowed you down?',
+      hint: _reflectionSlowedHint,
+      controller: _whatSlowedController,
+    );
+    final improvement = ReflectionCard(
+      label: 'Improvement for next week',
+      hint: _reflectionImprovementHint,
+      controller: _improvementController,
+      spanFullWidth: true,
+    );
+
+    if (isWide) {
+      return Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: worked),
+              const SizedBox(width: AppSpacing.reviewGap),
+              Expanded(child: slowed),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.reviewGap),
+          improvement,
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        worked,
+        const SizedBox(height: AppSpacing.reviewGap),
+        slowed,
+        const SizedBox(height: AppSpacing.reviewGap),
+        improvement,
+      ],
     );
   }
 }

@@ -2562,6 +2562,17 @@ class $WeeklyReviewsTable extends WeeklyReviews
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _improvementForNextWeekMeta =
+      const VerificationMeta('improvementForNextWeek');
+  @override
+  late final GeneratedColumn<String> improvementForNextWeek =
+      GeneratedColumn<String>(
+        'improvement_for_next_week',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _nextActionsMeta = const VerificationMeta(
     'nextActions',
   );
@@ -2619,6 +2630,39 @@ class $WeeklyReviewsTable extends WeeklyReviews
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _executionScoreMeta = const VerificationMeta(
+    'executionScore',
+  );
+  @override
+  late final GeneratedColumn<double> executionScore = GeneratedColumn<double>(
+    'execution_score',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weeklyNarrativeMeta = const VerificationMeta(
+    'weeklyNarrative',
+  );
+  @override
+  late final GeneratedColumn<String> weeklyNarrative = GeneratedColumn<String>(
+    'weekly_narrative',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _insightsJsonMeta = const VerificationMeta(
+    'insightsJson',
+  );
+  @override
+  late final GeneratedColumn<String> insightsJson = GeneratedColumn<String>(
+    'insights_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _lockedMeta = const VerificationMeta('locked');
   @override
   late final GeneratedColumn<bool> locked = GeneratedColumn<bool>(
@@ -2662,11 +2706,15 @@ class $WeeklyReviewsTable extends WeeklyReviews
     whatFailed,
     whatToAutomate,
     whatToCut,
+    improvementForNextWeek,
     nextActions,
     startedRate,
     totalTasks,
     startedTasks,
     focusScore,
+    executionScore,
+    weeklyNarrative,
+    insightsJson,
     locked,
     createdAt,
     updatedAt,
@@ -2721,6 +2769,15 @@ class $WeeklyReviewsTable extends WeeklyReviews
         whatToCut.isAcceptableOrUnknown(data['what_to_cut']!, _whatToCutMeta),
       );
     }
+    if (data.containsKey('improvement_for_next_week')) {
+      context.handle(
+        _improvementForNextWeekMeta,
+        improvementForNextWeek.isAcceptableOrUnknown(
+          data['improvement_for_next_week']!,
+          _improvementForNextWeekMeta,
+        ),
+      );
+    }
     if (data.containsKey('next_actions')) {
       context.handle(
         _nextActionsMeta,
@@ -2758,6 +2815,33 @@ class $WeeklyReviewsTable extends WeeklyReviews
       context.handle(
         _focusScoreMeta,
         focusScore.isAcceptableOrUnknown(data['focus_score']!, _focusScoreMeta),
+      );
+    }
+    if (data.containsKey('execution_score')) {
+      context.handle(
+        _executionScoreMeta,
+        executionScore.isAcceptableOrUnknown(
+          data['execution_score']!,
+          _executionScoreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weekly_narrative')) {
+      context.handle(
+        _weeklyNarrativeMeta,
+        weeklyNarrative.isAcceptableOrUnknown(
+          data['weekly_narrative']!,
+          _weeklyNarrativeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('insights_json')) {
+      context.handle(
+        _insightsJsonMeta,
+        insightsJson.isAcceptableOrUnknown(
+          data['insights_json']!,
+          _insightsJsonMeta,
+        ),
       );
     }
     if (data.containsKey('locked')) {
@@ -2815,6 +2899,10 @@ class $WeeklyReviewsTable extends WeeklyReviews
         DriftSqlType.string,
         data['${effectivePrefix}what_to_cut'],
       ),
+      improvementForNextWeek: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}improvement_for_next_week'],
+      ),
       nextActions: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}next_actions'],
@@ -2834,6 +2922,18 @@ class $WeeklyReviewsTable extends WeeklyReviews
       focusScore: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}focus_score'],
+      ),
+      executionScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}execution_score'],
+      ),
+      weeklyNarrative: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weekly_narrative'],
+      ),
+      insightsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}insights_json'],
       ),
       locked: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -2863,11 +2963,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
   final String? whatFailed;
   final String? whatToAutomate;
   final String? whatToCut;
+  final String? improvementForNextWeek;
   final String? nextActions;
   final double? startedRate;
   final int totalTasks;
   final int startedTasks;
   final double? focusScore;
+  final double? executionScore;
+  final String? weeklyNarrative;
+  final String? insightsJson;
   final bool locked;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -2878,11 +2982,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
     this.whatFailed,
     this.whatToAutomate,
     this.whatToCut,
+    this.improvementForNextWeek,
     this.nextActions,
     this.startedRate,
     required this.totalTasks,
     required this.startedTasks,
     this.focusScore,
+    this.executionScore,
+    this.weeklyNarrative,
+    this.insightsJson,
     required this.locked,
     required this.createdAt,
     required this.updatedAt,
@@ -2904,6 +3012,11 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
     if (!nullToAbsent || whatToCut != null) {
       map['what_to_cut'] = Variable<String>(whatToCut);
     }
+    if (!nullToAbsent || improvementForNextWeek != null) {
+      map['improvement_for_next_week'] = Variable<String>(
+        improvementForNextWeek,
+      );
+    }
     if (!nullToAbsent || nextActions != null) {
       map['next_actions'] = Variable<String>(nextActions);
     }
@@ -2914,6 +3027,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
     map['started_tasks'] = Variable<int>(startedTasks);
     if (!nullToAbsent || focusScore != null) {
       map['focus_score'] = Variable<double>(focusScore);
+    }
+    if (!nullToAbsent || executionScore != null) {
+      map['execution_score'] = Variable<double>(executionScore);
+    }
+    if (!nullToAbsent || weeklyNarrative != null) {
+      map['weekly_narrative'] = Variable<String>(weeklyNarrative);
+    }
+    if (!nullToAbsent || insightsJson != null) {
+      map['insights_json'] = Variable<String>(insightsJson);
     }
     map['locked'] = Variable<bool>(locked);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2937,6 +3059,9 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
       whatToCut: whatToCut == null && nullToAbsent
           ? const Value.absent()
           : Value(whatToCut),
+      improvementForNextWeek: improvementForNextWeek == null && nullToAbsent
+          ? const Value.absent()
+          : Value(improvementForNextWeek),
       nextActions: nextActions == null && nullToAbsent
           ? const Value.absent()
           : Value(nextActions),
@@ -2948,6 +3073,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
       focusScore: focusScore == null && nullToAbsent
           ? const Value.absent()
           : Value(focusScore),
+      executionScore: executionScore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(executionScore),
+      weeklyNarrative: weeklyNarrative == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weeklyNarrative),
+      insightsJson: insightsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(insightsJson),
       locked: Value(locked),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -2966,11 +3100,17 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
       whatFailed: serializer.fromJson<String?>(json['whatFailed']),
       whatToAutomate: serializer.fromJson<String?>(json['whatToAutomate']),
       whatToCut: serializer.fromJson<String?>(json['whatToCut']),
+      improvementForNextWeek: serializer.fromJson<String?>(
+        json['improvementForNextWeek'],
+      ),
       nextActions: serializer.fromJson<String?>(json['nextActions']),
       startedRate: serializer.fromJson<double?>(json['startedRate']),
       totalTasks: serializer.fromJson<int>(json['totalTasks']),
       startedTasks: serializer.fromJson<int>(json['startedTasks']),
       focusScore: serializer.fromJson<double?>(json['focusScore']),
+      executionScore: serializer.fromJson<double?>(json['executionScore']),
+      weeklyNarrative: serializer.fromJson<String?>(json['weeklyNarrative']),
+      insightsJson: serializer.fromJson<String?>(json['insightsJson']),
       locked: serializer.fromJson<bool>(json['locked']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -2986,11 +3126,17 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
       'whatFailed': serializer.toJson<String?>(whatFailed),
       'whatToAutomate': serializer.toJson<String?>(whatToAutomate),
       'whatToCut': serializer.toJson<String?>(whatToCut),
+      'improvementForNextWeek': serializer.toJson<String?>(
+        improvementForNextWeek,
+      ),
       'nextActions': serializer.toJson<String?>(nextActions),
       'startedRate': serializer.toJson<double?>(startedRate),
       'totalTasks': serializer.toJson<int>(totalTasks),
       'startedTasks': serializer.toJson<int>(startedTasks),
       'focusScore': serializer.toJson<double?>(focusScore),
+      'executionScore': serializer.toJson<double?>(executionScore),
+      'weeklyNarrative': serializer.toJson<String?>(weeklyNarrative),
+      'insightsJson': serializer.toJson<String?>(insightsJson),
       'locked': serializer.toJson<bool>(locked),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -3004,11 +3150,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
     Value<String?> whatFailed = const Value.absent(),
     Value<String?> whatToAutomate = const Value.absent(),
     Value<String?> whatToCut = const Value.absent(),
+    Value<String?> improvementForNextWeek = const Value.absent(),
     Value<String?> nextActions = const Value.absent(),
     Value<double?> startedRate = const Value.absent(),
     int? totalTasks,
     int? startedTasks,
     Value<double?> focusScore = const Value.absent(),
+    Value<double?> executionScore = const Value.absent(),
+    Value<String?> weeklyNarrative = const Value.absent(),
+    Value<String?> insightsJson = const Value.absent(),
     bool? locked,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -3021,11 +3171,21 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
         ? whatToAutomate.value
         : this.whatToAutomate,
     whatToCut: whatToCut.present ? whatToCut.value : this.whatToCut,
+    improvementForNextWeek: improvementForNextWeek.present
+        ? improvementForNextWeek.value
+        : this.improvementForNextWeek,
     nextActions: nextActions.present ? nextActions.value : this.nextActions,
     startedRate: startedRate.present ? startedRate.value : this.startedRate,
     totalTasks: totalTasks ?? this.totalTasks,
     startedTasks: startedTasks ?? this.startedTasks,
     focusScore: focusScore.present ? focusScore.value : this.focusScore,
+    executionScore: executionScore.present
+        ? executionScore.value
+        : this.executionScore,
+    weeklyNarrative: weeklyNarrative.present
+        ? weeklyNarrative.value
+        : this.weeklyNarrative,
+    insightsJson: insightsJson.present ? insightsJson.value : this.insightsJson,
     locked: locked ?? this.locked,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -3044,6 +3204,9 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
           ? data.whatToAutomate.value
           : this.whatToAutomate,
       whatToCut: data.whatToCut.present ? data.whatToCut.value : this.whatToCut,
+      improvementForNextWeek: data.improvementForNextWeek.present
+          ? data.improvementForNextWeek.value
+          : this.improvementForNextWeek,
       nextActions: data.nextActions.present
           ? data.nextActions.value
           : this.nextActions,
@@ -3059,6 +3222,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
       focusScore: data.focusScore.present
           ? data.focusScore.value
           : this.focusScore,
+      executionScore: data.executionScore.present
+          ? data.executionScore.value
+          : this.executionScore,
+      weeklyNarrative: data.weeklyNarrative.present
+          ? data.weeklyNarrative.value
+          : this.weeklyNarrative,
+      insightsJson: data.insightsJson.present
+          ? data.insightsJson.value
+          : this.insightsJson,
       locked: data.locked.present ? data.locked.value : this.locked,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -3074,11 +3246,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
           ..write('whatFailed: $whatFailed, ')
           ..write('whatToAutomate: $whatToAutomate, ')
           ..write('whatToCut: $whatToCut, ')
+          ..write('improvementForNextWeek: $improvementForNextWeek, ')
           ..write('nextActions: $nextActions, ')
           ..write('startedRate: $startedRate, ')
           ..write('totalTasks: $totalTasks, ')
           ..write('startedTasks: $startedTasks, ')
           ..write('focusScore: $focusScore, ')
+          ..write('executionScore: $executionScore, ')
+          ..write('weeklyNarrative: $weeklyNarrative, ')
+          ..write('insightsJson: $insightsJson, ')
           ..write('locked: $locked, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -3094,11 +3270,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
     whatFailed,
     whatToAutomate,
     whatToCut,
+    improvementForNextWeek,
     nextActions,
     startedRate,
     totalTasks,
     startedTasks,
     focusScore,
+    executionScore,
+    weeklyNarrative,
+    insightsJson,
     locked,
     createdAt,
     updatedAt,
@@ -3113,11 +3293,15 @@ class WeeklyReview extends DataClass implements Insertable<WeeklyReview> {
           other.whatFailed == this.whatFailed &&
           other.whatToAutomate == this.whatToAutomate &&
           other.whatToCut == this.whatToCut &&
+          other.improvementForNextWeek == this.improvementForNextWeek &&
           other.nextActions == this.nextActions &&
           other.startedRate == this.startedRate &&
           other.totalTasks == this.totalTasks &&
           other.startedTasks == this.startedTasks &&
           other.focusScore == this.focusScore &&
+          other.executionScore == this.executionScore &&
+          other.weeklyNarrative == this.weeklyNarrative &&
+          other.insightsJson == this.insightsJson &&
           other.locked == this.locked &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -3130,11 +3314,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
   final Value<String?> whatFailed;
   final Value<String?> whatToAutomate;
   final Value<String?> whatToCut;
+  final Value<String?> improvementForNextWeek;
   final Value<String?> nextActions;
   final Value<double?> startedRate;
   final Value<int> totalTasks;
   final Value<int> startedTasks;
   final Value<double?> focusScore;
+  final Value<double?> executionScore;
+  final Value<String?> weeklyNarrative;
+  final Value<String?> insightsJson;
   final Value<bool> locked;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -3145,11 +3333,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
     this.whatFailed = const Value.absent(),
     this.whatToAutomate = const Value.absent(),
     this.whatToCut = const Value.absent(),
+    this.improvementForNextWeek = const Value.absent(),
     this.nextActions = const Value.absent(),
     this.startedRate = const Value.absent(),
     this.totalTasks = const Value.absent(),
     this.startedTasks = const Value.absent(),
     this.focusScore = const Value.absent(),
+    this.executionScore = const Value.absent(),
+    this.weeklyNarrative = const Value.absent(),
+    this.insightsJson = const Value.absent(),
     this.locked = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3161,11 +3353,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
     this.whatFailed = const Value.absent(),
     this.whatToAutomate = const Value.absent(),
     this.whatToCut = const Value.absent(),
+    this.improvementForNextWeek = const Value.absent(),
     this.nextActions = const Value.absent(),
     this.startedRate = const Value.absent(),
     this.totalTasks = const Value.absent(),
     this.startedTasks = const Value.absent(),
     this.focusScore = const Value.absent(),
+    this.executionScore = const Value.absent(),
+    this.weeklyNarrative = const Value.absent(),
+    this.insightsJson = const Value.absent(),
     this.locked = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -3179,11 +3375,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
     Expression<String>? whatFailed,
     Expression<String>? whatToAutomate,
     Expression<String>? whatToCut,
+    Expression<String>? improvementForNextWeek,
     Expression<String>? nextActions,
     Expression<double>? startedRate,
     Expression<int>? totalTasks,
     Expression<int>? startedTasks,
     Expression<double>? focusScore,
+    Expression<double>? executionScore,
+    Expression<String>? weeklyNarrative,
+    Expression<String>? insightsJson,
     Expression<bool>? locked,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -3195,11 +3395,16 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
       if (whatFailed != null) 'what_failed': whatFailed,
       if (whatToAutomate != null) 'what_to_automate': whatToAutomate,
       if (whatToCut != null) 'what_to_cut': whatToCut,
+      if (improvementForNextWeek != null)
+        'improvement_for_next_week': improvementForNextWeek,
       if (nextActions != null) 'next_actions': nextActions,
       if (startedRate != null) 'started_rate': startedRate,
       if (totalTasks != null) 'total_tasks': totalTasks,
       if (startedTasks != null) 'started_tasks': startedTasks,
       if (focusScore != null) 'focus_score': focusScore,
+      if (executionScore != null) 'execution_score': executionScore,
+      if (weeklyNarrative != null) 'weekly_narrative': weeklyNarrative,
+      if (insightsJson != null) 'insights_json': insightsJson,
       if (locked != null) 'locked': locked,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3213,11 +3418,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
     Value<String?>? whatFailed,
     Value<String?>? whatToAutomate,
     Value<String?>? whatToCut,
+    Value<String?>? improvementForNextWeek,
     Value<String?>? nextActions,
     Value<double?>? startedRate,
     Value<int>? totalTasks,
     Value<int>? startedTasks,
     Value<double?>? focusScore,
+    Value<double?>? executionScore,
+    Value<String?>? weeklyNarrative,
+    Value<String?>? insightsJson,
     Value<bool>? locked,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -3229,11 +3438,16 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
       whatFailed: whatFailed ?? this.whatFailed,
       whatToAutomate: whatToAutomate ?? this.whatToAutomate,
       whatToCut: whatToCut ?? this.whatToCut,
+      improvementForNextWeek:
+          improvementForNextWeek ?? this.improvementForNextWeek,
       nextActions: nextActions ?? this.nextActions,
       startedRate: startedRate ?? this.startedRate,
       totalTasks: totalTasks ?? this.totalTasks,
       startedTasks: startedTasks ?? this.startedTasks,
       focusScore: focusScore ?? this.focusScore,
+      executionScore: executionScore ?? this.executionScore,
+      weeklyNarrative: weeklyNarrative ?? this.weeklyNarrative,
+      insightsJson: insightsJson ?? this.insightsJson,
       locked: locked ?? this.locked,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3261,6 +3475,11 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
     if (whatToCut.present) {
       map['what_to_cut'] = Variable<String>(whatToCut.value);
     }
+    if (improvementForNextWeek.present) {
+      map['improvement_for_next_week'] = Variable<String>(
+        improvementForNextWeek.value,
+      );
+    }
     if (nextActions.present) {
       map['next_actions'] = Variable<String>(nextActions.value);
     }
@@ -3275,6 +3494,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
     }
     if (focusScore.present) {
       map['focus_score'] = Variable<double>(focusScore.value);
+    }
+    if (executionScore.present) {
+      map['execution_score'] = Variable<double>(executionScore.value);
+    }
+    if (weeklyNarrative.present) {
+      map['weekly_narrative'] = Variable<String>(weeklyNarrative.value);
+    }
+    if (insightsJson.present) {
+      map['insights_json'] = Variable<String>(insightsJson.value);
     }
     if (locked.present) {
       map['locked'] = Variable<bool>(locked.value);
@@ -3297,11 +3525,15 @@ class WeeklyReviewsCompanion extends UpdateCompanion<WeeklyReview> {
           ..write('whatFailed: $whatFailed, ')
           ..write('whatToAutomate: $whatToAutomate, ')
           ..write('whatToCut: $whatToCut, ')
+          ..write('improvementForNextWeek: $improvementForNextWeek, ')
           ..write('nextActions: $nextActions, ')
           ..write('startedRate: $startedRate, ')
           ..write('totalTasks: $totalTasks, ')
           ..write('startedTasks: $startedTasks, ')
           ..write('focusScore: $focusScore, ')
+          ..write('executionScore: $executionScore, ')
+          ..write('weeklyNarrative: $weeklyNarrative, ')
+          ..write('insightsJson: $insightsJson, ')
           ..write('locked: $locked, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -5467,11 +5699,15 @@ typedef $$WeeklyReviewsTableCreateCompanionBuilder =
       Value<String?> whatFailed,
       Value<String?> whatToAutomate,
       Value<String?> whatToCut,
+      Value<String?> improvementForNextWeek,
       Value<String?> nextActions,
       Value<double?> startedRate,
       Value<int> totalTasks,
       Value<int> startedTasks,
       Value<double?> focusScore,
+      Value<double?> executionScore,
+      Value<String?> weeklyNarrative,
+      Value<String?> insightsJson,
       Value<bool> locked,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -5484,11 +5720,15 @@ typedef $$WeeklyReviewsTableUpdateCompanionBuilder =
       Value<String?> whatFailed,
       Value<String?> whatToAutomate,
       Value<String?> whatToCut,
+      Value<String?> improvementForNextWeek,
       Value<String?> nextActions,
       Value<double?> startedRate,
       Value<int> totalTasks,
       Value<int> startedTasks,
       Value<double?> focusScore,
+      Value<double?> executionScore,
+      Value<String?> weeklyNarrative,
+      Value<String?> insightsJson,
       Value<bool> locked,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -5533,6 +5773,11 @@ class $$WeeklyReviewsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get improvementForNextWeek => $composableBuilder(
+    column: $table.improvementForNextWeek,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get nextActions => $composableBuilder(
     column: $table.nextActions,
     builder: (column) => ColumnFilters(column),
@@ -5555,6 +5800,21 @@ class $$WeeklyReviewsTableFilterComposer
 
   ColumnFilters<double> get focusScore => $composableBuilder(
     column: $table.focusScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get executionScore => $composableBuilder(
+    column: $table.executionScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weeklyNarrative => $composableBuilder(
+    column: $table.weeklyNarrative,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get insightsJson => $composableBuilder(
+    column: $table.insightsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5613,6 +5873,11 @@ class $$WeeklyReviewsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get improvementForNextWeek => $composableBuilder(
+    column: $table.improvementForNextWeek,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get nextActions => $composableBuilder(
     column: $table.nextActions,
     builder: (column) => ColumnOrderings(column),
@@ -5635,6 +5900,21 @@ class $$WeeklyReviewsTableOrderingComposer
 
   ColumnOrderings<double> get focusScore => $composableBuilder(
     column: $table.focusScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get executionScore => $composableBuilder(
+    column: $table.executionScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weeklyNarrative => $composableBuilder(
+    column: $table.weeklyNarrative,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get insightsJson => $composableBuilder(
+    column: $table.insightsJson,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -5687,6 +5967,11 @@ class $$WeeklyReviewsTableAnnotationComposer
   GeneratedColumn<String> get whatToCut =>
       $composableBuilder(column: $table.whatToCut, builder: (column) => column);
 
+  GeneratedColumn<String> get improvementForNextWeek => $composableBuilder(
+    column: $table.improvementForNextWeek,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get nextActions => $composableBuilder(
     column: $table.nextActions,
     builder: (column) => column,
@@ -5709,6 +5994,21 @@ class $$WeeklyReviewsTableAnnotationComposer
 
   GeneratedColumn<double> get focusScore => $composableBuilder(
     column: $table.focusScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get executionScore => $composableBuilder(
+    column: $table.executionScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get weeklyNarrative => $composableBuilder(
+    column: $table.weeklyNarrative,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get insightsJson => $composableBuilder(
+    column: $table.insightsJson,
     builder: (column) => column,
   );
 
@@ -5759,11 +6059,15 @@ class $$WeeklyReviewsTableTableManager
                 Value<String?> whatFailed = const Value.absent(),
                 Value<String?> whatToAutomate = const Value.absent(),
                 Value<String?> whatToCut = const Value.absent(),
+                Value<String?> improvementForNextWeek = const Value.absent(),
                 Value<String?> nextActions = const Value.absent(),
                 Value<double?> startedRate = const Value.absent(),
                 Value<int> totalTasks = const Value.absent(),
                 Value<int> startedTasks = const Value.absent(),
                 Value<double?> focusScore = const Value.absent(),
+                Value<double?> executionScore = const Value.absent(),
+                Value<String?> weeklyNarrative = const Value.absent(),
+                Value<String?> insightsJson = const Value.absent(),
                 Value<bool> locked = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -5774,11 +6078,15 @@ class $$WeeklyReviewsTableTableManager
                 whatFailed: whatFailed,
                 whatToAutomate: whatToAutomate,
                 whatToCut: whatToCut,
+                improvementForNextWeek: improvementForNextWeek,
                 nextActions: nextActions,
                 startedRate: startedRate,
                 totalTasks: totalTasks,
                 startedTasks: startedTasks,
                 focusScore: focusScore,
+                executionScore: executionScore,
+                weeklyNarrative: weeklyNarrative,
+                insightsJson: insightsJson,
                 locked: locked,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -5791,11 +6099,15 @@ class $$WeeklyReviewsTableTableManager
                 Value<String?> whatFailed = const Value.absent(),
                 Value<String?> whatToAutomate = const Value.absent(),
                 Value<String?> whatToCut = const Value.absent(),
+                Value<String?> improvementForNextWeek = const Value.absent(),
                 Value<String?> nextActions = const Value.absent(),
                 Value<double?> startedRate = const Value.absent(),
                 Value<int> totalTasks = const Value.absent(),
                 Value<int> startedTasks = const Value.absent(),
                 Value<double?> focusScore = const Value.absent(),
+                Value<double?> executionScore = const Value.absent(),
+                Value<String?> weeklyNarrative = const Value.absent(),
+                Value<String?> insightsJson = const Value.absent(),
                 Value<bool> locked = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -5806,11 +6118,15 @@ class $$WeeklyReviewsTableTableManager
                 whatFailed: whatFailed,
                 whatToAutomate: whatToAutomate,
                 whatToCut: whatToCut,
+                improvementForNextWeek: improvementForNextWeek,
                 nextActions: nextActions,
                 startedRate: startedRate,
                 totalTasks: totalTasks,
                 startedTasks: startedTasks,
                 focusScore: focusScore,
+                executionScore: executionScore,
+                weeklyNarrative: weeklyNarrative,
+                insightsJson: insightsJson,
                 locked: locked,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

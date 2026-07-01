@@ -52,6 +52,26 @@ class FocusSessionRepository {
     return rows.map(FocusSessionRecord.fromRow).toList();
   }
 
+  Future<List<FocusSessionRecord>> getCompletedSessionsForWeek(
+    DateTime weekMonday,
+  ) async {
+    final start = DateTime(
+      weekMonday.year,
+      weekMonday.month,
+      weekMonday.day,
+    );
+    final end = start.add(const Duration(days: 7));
+    final rows = await (_db.select(_db.focusSessions)
+          ..where(
+            (s) =>
+                s.endedAt.isNotNull() &
+                s.endedAt.isBiggerOrEqualValue(start) &
+                s.endedAt.isSmallerThanValue(end),
+          ))
+        .get();
+    return rows.map(FocusSessionRecord.fromRow).toList();
+  }
+
   Future<int> insertSession(FocusSessionsCompanion companion) {
     return _db.into(_db.focusSessions).insert(companion);
   }

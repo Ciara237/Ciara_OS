@@ -24,7 +24,7 @@ class ReviewScreenHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Weekly Review',
+          'Executive Debrief',
           style: (isWide
                   ? AppTypography.headingLarge
                   : AppTypography.headingMedium)
@@ -32,7 +32,7 @@ class ReviewScreenHeader extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Reflection and system recalibration.',
+          'Strategic performance analysis and system recalibration.',
           style: AppTypography.bodyLarge.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),

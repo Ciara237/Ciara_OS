@@ -5,20 +5,16 @@ import 'package:flutter/material.dart';
 class ReflectionCard extends StatelessWidget {
   const ReflectionCard({
     super.key,
-    required this.icon,
-    required this.iconColor,
     required this.label,
     required this.hint,
     required this.controller,
-    this.labelColor,
+    this.spanFullWidth = false,
   });
 
-  final IconData icon;
-  final Color iconColor;
   final String label;
   final String hint;
   final TextEditingController controller;
-  final Color? labelColor;
+  final bool spanFullWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -28,53 +24,47 @@ class ReflectionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: iconColor, size: AppSpacing.lg),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppTypography.headingMedium.copyWith(
-                    color: labelColor ?? colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.labelSmall.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              letterSpacing: 1.2,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-              ),
+          TextField(
+            controller: controller,
+            minLines: 4,
+            maxLines: null,
+            style: AppTypography.bodyLarge.copyWith(
+              color: colorScheme.onSurface,
             ),
-            child: TextField(
-              controller: controller,
-              minLines: 4,
-              maxLines: null,
-              style: AppTypography.bodyMedium.copyWith(
-                color: colorScheme.onSurface,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: AppTypography.bodyMedium.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: AppTypography.bodyMedium.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.all(12),
               ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: colorScheme.primary),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             ),
           ),
         ],

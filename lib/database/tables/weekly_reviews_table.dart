@@ -13,6 +13,8 @@ class WeeklyReviews extends Table {
 
   TextColumn get whatToCut => text().nullable()();
 
+  TextColumn get improvementForNextWeek => text().nullable()();
+
   TextColumn get nextActions => text().nullable()();
 
   RealColumn get startedRate => real().nullable()();
@@ -24,6 +26,12 @@ class WeeklyReviews extends Table {
       integer().withDefault(const Constant(0))();
 
   RealColumn get focusScore => real().nullable()();
+
+  RealColumn get executionScore => real().nullable()();
+
+  TextColumn get weeklyNarrative => text().nullable()();
+
+  TextColumn get insightsJson => text().nullable()();
 
   BoolColumn get locked => boolean().withDefault(const Constant(false))();
 

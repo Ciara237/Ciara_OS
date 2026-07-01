@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -83,6 +83,24 @@ class AppDatabase extends _$AppDatabase {
             await migrator.addColumn(
               tasks,
               tasks.lastFocusSessionAt,
+            );
+          }
+          if (from < 6) {
+            await migrator.addColumn(
+              weeklyReviews,
+              weeklyReviews.improvementForNextWeek,
+            );
+            await migrator.addColumn(
+              weeklyReviews,
+              weeklyReviews.executionScore,
+            );
+            await migrator.addColumn(
+              weeklyReviews,
+              weeklyReviews.weeklyNarrative,
+            );
+            await migrator.addColumn(
+              weeklyReviews,
+              weeklyReviews.insightsJson,
             );
           }
         },

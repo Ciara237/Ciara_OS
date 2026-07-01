@@ -44,6 +44,34 @@ class TaskRepository {
     return (_db.delete(_db.tasks)..where((task) => task.id.equals(id))).go();
   }
 
+  Future<List<Task>> getTasksCompletedInWeek(DateTime weekStart) async {
+    final normalizedStart = DateTime(
+      weekStart.year,
+      weekStart.month,
+      weekStart.day,
+    );
+    final normalizedEnd = normalizedStart.add(const Duration(days: 7));
+    final rows = await (_db.select(_db.tasks)..where(
+          (task) =>
+              task.status.equals('done') &
+              task.updatedAt.isBiggerOrEqualValue(normalizedStart) &
+              task.updatedAt.isSmallerThanValue(normalizedEnd),
+        ))
+        .get();
+    return rows.map(Task.fromRow).toList();
+  }
+
+  Future<List<Task>> getIncompleteTasks() async {
+    final rows = await (_db.select(_db.tasks)
+          ..where((task) => task.status.isNotValue('done'))
+          ..orderBy([
+            (task) => OrderingTerm.desc(task.priority),
+            (task) => OrderingTerm.desc(task.updatedAt),
+          ]))
+        .get();
+    return rows.map(Task.fromRow).toList();
+  }
+
   Future<List<Task>> getTasksForWeek(DateTime weekStart) async {
     final normalizedStart = DateTime(
       weekStart.year,

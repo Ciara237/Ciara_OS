@@ -61,6 +61,34 @@ abstract final class DailyActivityStats {
     await prefs.setString(_lastActiveKey, todayKey);
   }
 
+  static Future<List<int>> focusSecondsForWeek(DateTime weekMonday) async {
+    final start = DateTime(
+      weekMonday.year,
+      weekMonday.month,
+      weekMonday.day,
+    );
+    return Future.wait(
+      List.generate(
+        7,
+        (index) => focusSecondsFor(start.add(Duration(days: index))),
+      ),
+    );
+  }
+
+  static Future<int> focusSecondsForRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    var total = 0;
+    var day = DateTime(start.year, start.month, start.day);
+    final endDay = DateTime(end.year, end.month, end.day);
+    while (day.isBefore(endDay)) {
+      total += await focusSecondsFor(day);
+      day = day.add(const Duration(days: 1));
+    }
+    return total;
+  }
+
   static Future<int> dailyStreak() async {
     final prefs = await SharedPreferences.getInstance();
     final lastActive = prefs.getString(_lastActiveKey);
