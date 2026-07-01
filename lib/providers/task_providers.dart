@@ -19,6 +19,12 @@ final todayTasksProvider = StreamProvider<List<Task>>((ref) {
   return ref.watch(taskRepositoryProvider).watchToday();
 });
 
+final weekTasksProvider = FutureProvider.family<List<Task>, DateTime>(
+  (ref, weekStart) async {
+    return ref.watch(taskRepositoryProvider).getTasksForWeek(weekStart);
+  },
+);
+
 final domainFilterProvider = StateProvider<Domain?>((ref) => null);
 
 final deadlineFilterProvider = StateProvider<String?>((ref) => null);

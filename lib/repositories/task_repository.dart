@@ -44,6 +44,16 @@ class TaskRepository {
     return (_db.delete(_db.tasks)..where((task) => task.id.equals(id))).go();
   }
 
+  Future<List<Task>> getTasksForWeek(DateTime weekStart) async {
+    final normalized = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    final weekEnd = normalized.add(const Duration(days: 7));
+    final rows = await (_db.select(_db.tasks)
+          ..where((task) => task.createdAt.isBiggerOrEqualValue(normalized))
+          ..where((task) => task.createdAt.isSmallerThanValue(weekEnd)))
+        .get();
+    return rows.map(Task.fromRow).toList();
+  }
+
   Future<void> incrementPostponeCount(int id) async {
     final task = await getById(id);
     if (task == null) {
