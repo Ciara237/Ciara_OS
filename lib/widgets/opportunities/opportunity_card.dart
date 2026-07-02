@@ -68,9 +68,10 @@ class OpportunityCard extends StatelessWidget {
         onTap: onTap,
         onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Container(
               width: AppSpacing.taskBorderWidth,
               decoration: BoxDecoration(
@@ -162,6 +163,7 @@ class OpportunityCard extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

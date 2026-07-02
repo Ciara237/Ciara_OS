@@ -96,33 +96,36 @@ class _DocumentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return InkWell(
-      onTap: onChanged,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Row(
-          children: [
-            Checkbox(
-              value: document.completed,
-              onChanged: (_) => onChanged(),
-              activeColor: statusColor,
-              checkColor: colorScheme.onPrimary,
-              side: BorderSide(color: colorScheme.onSurfaceVariant),
-            ),
-            Expanded(
-              child: Text(
-                document.name,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: document.completed
-                      ? colorScheme.onSurfaceVariant
-                      : colorScheme.onSurface,
-                  decoration: document.completed
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onChanged,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          child: Row(
+            children: [
+              Checkbox(
+                value: document.completed,
+                onChanged: (_) => onChanged(),
+                activeColor: statusColor,
+                checkColor: colorScheme.onPrimary,
+                side: BorderSide(color: colorScheme.onSurfaceVariant),
+              ),
+              Expanded(
+                child: Text(
+                  document.name,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: document.completed
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.onSurface,
+                    decoration: document.completed
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
