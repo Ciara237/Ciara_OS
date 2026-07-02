@@ -1,8 +1,29 @@
 import 'package:ciaraos/models/task.dart';
+import 'package:intl/intl.dart';
 
 DateTime mondayOfWeek(DateTime date) {
   final local = DateTime(date.year, date.month, date.day);
   return local.subtract(Duration(days: local.weekday - DateTime.monday));
+}
+
+/// ISO week number for review and analytics headers (e.g. Week 27).
+int isoWeekNumber(DateTime date) {
+  final thursday = date.add(Duration(days: 4 - date.weekday));
+  final yearStart = DateTime(thursday.year, 1, 1);
+  return 1 + (thursday.difference(yearStart).inDays / 7).floor();
+}
+
+/// Human-readable Mon–Sun range, e.g. "June 29 – July 5, 2026".
+String reviewWeekRangeLabel(DateTime weekMonday) {
+  final end = weekMonday.add(const Duration(days: 6));
+  final monthDay = DateFormat('MMMM d');
+  final year = DateFormat('y');
+  return '${monthDay.format(weekMonday)} – ${monthDay.format(end)}, ${year.format(end)}';
+}
+
+/// Full review header week line, e.g. "Week 27 • June 29 – July 5, 2026".
+String reviewWeekHeaderLabel(DateTime weekMonday) {
+  return 'Week ${isoWeekNumber(weekMonday)} • ${reviewWeekRangeLabel(weekMonday)}';
 }
 
 double startedRateForTasks(List<Task> tasks) {

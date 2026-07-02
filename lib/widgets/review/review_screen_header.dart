@@ -1,5 +1,6 @@
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/utils/review_stats_utils.dart';
 import 'package:flutter/material.dart';
 
 const _reviewHeaderWideBreakpoint = 768.0;
@@ -7,10 +8,12 @@ const _reviewHeaderWideBreakpoint = 768.0;
 class ReviewScreenHeader extends StatelessWidget {
   const ReviewScreenHeader({
     super.key,
+    required this.weekMonday,
     required this.onExport,
     required this.onFinalize,
   });
 
+  final DateTime weekMonday;
   final VoidCallback onExport;
   final VoidCallback onFinalize;
 
@@ -24,17 +27,30 @@ class ReviewScreenHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Executive Debrief',
-          style: (isWide
-                  ? AppTypography.headingLarge
-                  : AppTypography.headingMedium)
-              .copyWith(color: colorScheme.onSurface),
+          'EXECUTIVE DEBRIEF',
+          style: AppTypography.labelSmall.copyWith(
+            color: colorScheme.primary,
+            letterSpacing: 2,
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          reviewWeekHeaderLabel(weekMonday),
+          style: (isWide ? AppTypography.headingLarge : AppTypography.headingMedium)
+              .copyWith(
+            color: colorScheme.onSurface,
+            fontSize: isWide ? 26 : 22,
+            height: 1.2,
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Strategic performance analysis and system recalibration.',
           style: AppTypography.bodyLarge.copyWith(
             color: colorScheme.onSurfaceVariant,
+            fontSize: 17,
+            height: 1.45,
           ),
         ),
       ],
@@ -105,7 +121,7 @@ class ReviewScreenHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         titleSection,
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         actions,
       ],
     );

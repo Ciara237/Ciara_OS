@@ -178,9 +178,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     final projectAsync = ref.watch(projectByIdProvider(_id));
     final tasksAsync = ref.watch(allTasksProvider);
 
-    return ColoredBox(
-      color: colorScheme.surface,
-      child: Column(
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      body: Column(
         children: [
           const MinimalBackHeader(),
           Expanded(
@@ -831,10 +831,13 @@ class ProjectMetadataSection extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'DOMAIN',
-              style: AppTypography.labelSmall.copyWith(
-                color: colorScheme.onSurfaceVariant,
+            Flexible(
+              fit: FlexFit.loose,
+              child: Text(
+                'DOMAIN',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.md),

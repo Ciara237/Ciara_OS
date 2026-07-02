@@ -1,4 +1,5 @@
 import 'package:ciaraos/theme/app_spacing.dart';
+import 'package:ciaraos/widgets/completed_tasks/completed_tasks_entry_card.dart';
 import 'package:ciaraos/widgets/tasks/tasks_backlog_list_section.dart';
 import 'package:ciaraos/widgets/tasks/tasks_filter_bar.dart';
 import 'package:ciaraos/widgets/tasks/tasks_quick_add_bar.dart';
@@ -32,6 +33,8 @@ class TasksScreen extends ConsumerWidget {
                     ),
                     children: const [
                       TasksScreenLabel(),
+                      SizedBox(height: AppSpacing.md),
+                      CompletedTasksEntryCard(),
                       SizedBox(height: AppSpacing.lg),
                       TasksFilterBar(),
                       SizedBox(height: AppSpacing.lg),

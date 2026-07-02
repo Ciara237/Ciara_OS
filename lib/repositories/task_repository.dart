@@ -65,6 +65,41 @@ class TaskRepository {
     return rows.map(Task.fromRow).toList();
   }
 
+  Stream<List<Task>> watchCompleted() {
+    final query = _db.select(_db.tasks)
+      ..where((task) => task.status.equals('done'))
+      ..orderBy([(task) => OrderingTerm.desc(task.updatedAt)]);
+
+    return query.watch().map(
+          (rows) => rows.map(Task.fromRow).toList(),
+        );
+  }
+
+  Future<List<Task>> getCompletedBefore(
+    DateTime before, {
+    int limit = 20,
+  }) async {
+    final rows = await (_db.select(_db.tasks)
+          ..where(
+            (task) =>
+                task.status.equals('done') &
+                task.updatedAt.isSmallerThanValue(before),
+          )
+          ..orderBy([(task) => OrderingTerm.desc(task.updatedAt)])
+          ..limit(limit))
+        .get();
+    return rows.map(Task.fromRow).toList();
+  }
+
+  Future<int> countCompleted() async {
+    final countExp = _db.tasks.id.count();
+    final query = _db.selectOnly(_db.tasks)
+      ..addColumns([countExp])
+      ..where(_db.tasks.status.equals('done'));
+    final row = await query.getSingle();
+    return row.read(countExp) ?? 0;
+  }
+
   Future<List<Task>> getIncompleteTasks() async {
     final rows = await (_db.select(_db.tasks)
           ..where((task) => task.status.isNotValue('done'))

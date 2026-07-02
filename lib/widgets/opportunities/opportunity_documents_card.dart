@@ -54,9 +54,14 @@ class OpportunityDocumentsCard extends StatelessWidget {
                 ),
               ),
               if (total > 0)
-                Text(
-                  '$ready/$total COMPLETE',
-                  style: AppTypography.labelSmall.copyWith(color: countColor),
+                Flexible(
+                  child: Text(
+                    '$ready/$total COMPLETE',
+                    style: AppTypography.labelSmall.copyWith(color: countColor),
+                    textAlign: TextAlign.end,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
             ],
           ),

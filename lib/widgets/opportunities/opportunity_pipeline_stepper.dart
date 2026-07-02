@@ -49,6 +49,7 @@ class OpportunityPipelineStepper extends StatelessWidget {
               for (var i = 0; i < activeOpportunityPipeline.length; i++) ...[
                 if (i > 0)
                   Expanded(
+                    flex: 1,
                     child: Container(
                       height: 2,
                       color: _segmentColor(
@@ -59,15 +60,20 @@ class OpportunityPipelineStepper extends StatelessWidget {
                       ),
                     ),
                   ),
-                _StageDot(
-                  label: opportunityStatusStepLabel(activeOpportunityPipeline[i]),
-                  isPast: currentIndex != -1 && i < currentIndex,
-                  isCurrent: i == currentIndex,
-                  isFuture: currentIndex == -1 || i > currentIndex,
-                  statusColor: statusColor,
-                  onTap: onStageSelected == null
-                      ? null
-                      : () => onStageSelected!(activeOpportunityPipeline[i]),
+                Expanded(
+                  flex: 3,
+                  child: _StageDot(
+                    label: opportunityStatusStepLabel(
+                      activeOpportunityPipeline[i],
+                    ),
+                    isPast: currentIndex != -1 && i < currentIndex,
+                    isCurrent: i == currentIndex,
+                    isFuture: currentIndex == -1 || i > currentIndex,
+                    statusColor: statusColor,
+                    onTap: onStageSelected == null
+                        ? null
+                        : () => onStageSelected!(activeOpportunityPipeline[i]),
+                  ),
                 ),
               ],
             ],
@@ -115,45 +121,44 @@ class _StageDot extends StatelessWidget {
         ? statusColor.withValues(alpha: isPast ? 0.55 : 1)
         : Colors.transparent;
 
-    return SizedBox(
-      width: 56,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-          child: Column(
-            children: [
-              Container(
-                width: dotSize,
-                height: dotSize,
-                decoration: BoxDecoration(
-                  color: isFuture ? Colors.transparent : dotColor,
-                  shape: BoxShape.circle,
-                  border: isFuture
-                      ? Border.all(
-                          color: colorScheme.onSurfaceVariant,
-                          width: 1.5,
-                        )
-                      : null,
-                ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: Column(
+          children: [
+            Container(
+              width: dotSize,
+              height: dotSize,
+              decoration: BoxDecoration(
+                color: isFuture ? Colors.transparent : dotColor,
+                shape: BoxShape.circle,
+                border: isFuture
+                    ? Border.all(
+                        color: colorScheme.onSurfaceVariant,
+                        width: 1.5,
+                      )
+                    : null,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: AppTypography.labelSmall.copyWith(
-                  color: isCurrent
-                      ? statusColor
-                      : colorScheme.onSurfaceVariant.withValues(
-                          alpha: isPast ? 0.7 : 1,
-                        ),
-                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
-                ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.labelSmall.copyWith(
+                color: isCurrent
+                    ? statusColor
+                    : colorScheme.onSurfaceVariant.withValues(
+                        alpha: isPast ? 0.7 : 1,
+                      ),
+                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                decoration: TextDecoration.none,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

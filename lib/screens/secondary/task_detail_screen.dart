@@ -249,9 +249,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     final isWide = MediaQuery.sizeOf(context).width >= _wideBreakpoint;
     final cardPadding = isWide ? AppSpacing.xl : AppSpacing.lg;
 
-    return ColoredBox(
-      color: colorScheme.surface,
-      child: Column(
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      body: Column(
         children: [
           const MinimalBackHeader(),
           Expanded(

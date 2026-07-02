@@ -1,3 +1,4 @@
+import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
@@ -43,7 +44,10 @@ class TasksBacklogListSection extends ConsumerWidget {
         onAction: () => ref.invalidate(allTasksProvider),
       ),
       data: (tasks) {
-        final totalCount = allTasks.value?.length ?? 0;
+        final all = allTasks.value ?? const <Task>[];
+        final activeCount =
+            all.where((task) => task.status != TaskStatus.done).length;
+        final totalCount = all.length;
 
         if (totalCount == 0) {
           return EmptyState(
@@ -56,6 +60,16 @@ class TasksBacklogListSection extends ConsumerWidget {
             actionIcon: Icons.add,
             onAction: () => context.push('/tasks/new'),
             footer: const TasksEmptyStateFooter(),
+          );
+        }
+
+        if (activeCount == 0 && !filtersActive) {
+          return EmptyState(
+            title: 'Backlog Complete',
+            message:
+                'All tasks are done. View completed work in the Execution Archive.',
+            actionLabel: 'OPEN ARCHIVE',
+            onAction: () => context.push('/tasks/completed'),
           );
         }
 

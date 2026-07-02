@@ -83,7 +83,10 @@ class DeepWorkSection extends ConsumerWidget {
                             fontFeatures: isTracking
                                 ? const [FontFeature.tabularFigures()]
                                 : null,
+                            decoration: TextDecoration.none,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                       if (isTracking)
@@ -102,6 +105,13 @@ class DeepWorkSection extends ConsumerWidget {
                                       .read(focusSessionProvider.notifier)
                                       .endSession(quality);
                                 },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           child: const Text('End'),
                         ),
                     ],
@@ -173,18 +183,29 @@ class _StatRow extends StatelessWidget {
 
     return Row(
       children: [
-        Expanded(
+        Flexible(
+          flex: 2,
+          fit: FlexFit.loose,
           child: Text(
             label,
             style: AppTypography.labelSmall.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
-        Text(
-          value,
-          style: AppTypography.labelLarge.copyWith(
-            color: colorScheme.onSurface,
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(
+          flex: 1,
+          child: Text(
+            value,
+            style: AppTypography.labelLarge.copyWith(
+              color: colorScheme.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            textAlign: TextAlign.end,
           ),
         ),
       ],

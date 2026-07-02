@@ -48,8 +48,15 @@ class OpportunityFitNotesCard extends StatelessWidget {
               ),
               IconButton(
                 onPressed: isEditing ? onSave : onEdit,
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(
+                  minWidth: AppSpacing.xl,
+                  minHeight: AppSpacing.xl,
+                ),
                 icon: Icon(
                   isEditing ? Icons.check : Icons.edit,
+                  size: AppSpacing.lg,
                   color: colorScheme.primary,
                 ),
               ),

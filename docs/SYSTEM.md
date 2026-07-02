@@ -135,6 +135,9 @@ flowchart TD
 | Review | `/review` | Weekly Executive Debrief |
 | Profile | `/profile` | Identity, stats, tagline |
 | Settings | `/settings` | Theme, data, onboarding reset |
+| **Skills** | `/skills/*` | GitHub, security practice, certifications |
+| **Analytics** | `/analytics/*` | Trends, domain breakdown, planning accuracy |
+| **Knowledge** | `/knowledge/*` | Notes and saved resources |
 | Task / Project / Opportunity detail & forms | `/tasks/*`, `/projects/*`, `/opportunities/*` | CRUD + deep work |
 
 ---
@@ -145,13 +148,16 @@ flowchart TD
 lib/
 ├── main.dart                      # App entry, onboarding bootstrap, theme
 ├── router/app_router.dart         # GoRouter routes + onboarding redirect
-├── database/                      # Drift schema (v6), migrations
+├── database/                      # Drift schema (v8), migrations
 ├── models/                        # Domain types, enums, ExecutiveBrief
 ├── repositories/                  # CRUD + queries (tasks, projects, …)
 ├── providers/                     # Riverpod wiring (incl. ai_providers)
 ├── services/                        # Stats, debrief generators, AI client
 ├── screens/
 │   ├── primary/                   # Bottom-nav destinations
+│   ├── analytics/                 # Sidebar analytics screens
+│   ├── skills/                    # GitHub, security, certifications
+│   ├── knowledge/                 # Notes and resources
 │   └── secondary/                 # Detail, create/edit, profile, settings
 ├── widgets/                       # Feature UI by area (today/, deep_work/, …)
 ├── utils/                           # Filters, grouping, review stats
@@ -181,7 +187,7 @@ lib/
 
 | Store | Contents |
 |-------|----------|
-| **Drift (SQLite)** | Tasks, projects, opportunities, focus sessions, weekly reviews |
+| **Drift (SQLite)** | Tasks, projects, opportunities, focus sessions, weekly reviews, certifications, notes, resources |
 | **SharedPreferences** | Onboarding, daily focus seconds, streak, theme, profile tagline, notification toggle |
 
 ---
@@ -196,11 +202,11 @@ Ciara OS spans two repos on disk:
 └── ciara_os_backend/      # FastAPI AI backend (sibling, optional)
     ├── main.py
     ├── requirements.txt
-    ├── .env.example       # GROQ_API_KEY=…
+    ├── .env.example       # GROQ_API_KEY, GITHUB_TOKEN, HTB/H1 keys
     └── .env               # gitignored — never commit
 ```
 
-The Flutter app runs fully offline. The backend is only required for the **Executive Brief** card on Today.
+The Flutter app runs fully offline for core execution. The optional backend powers the **Executive Brief**, **GitHub Activity**, and **Security Practice** API syncs.
 
 ---
 
@@ -241,6 +247,25 @@ On first shell mount, if an interrupted `focus_sessions` row exists (`endedAt IS
 | `/opportunities/:id` | `OpportunityDetailScreen` |
 | `/opportunities/:id/edit` | `OpportunityCreateEditScreen` (edit) |
 
+### Sidebar routes (drawer — `PrimaryDrawer`)
+
+Opened from the hamburger drawer; use `SidebarScreenScaffold` + `TodayHeader`.
+
+| Section | Route | Screen |
+|---------|-------|--------|
+| Skills · GitHub | `/skills/github` | `GitHubActivityScreen` |
+| Skills · GitHub repos | `/skills/github/repos` | `GitHubRepositoriesScreen` |
+| Skills · Security | `/skills/ctf` | `SecurityPracticeScreen` |
+| Skills · Certifications | `/skills/certifications` | `CertificationsScreen` |
+| Analytics · Trends | `/analytics/trends` | `ProductivityTrendsScreen` |
+| Analytics · Domains | `/analytics/domains` | `DomainBreakdownScreen` |
+| Analytics · Accuracy | `/analytics/accuracy` | `PlanningAccuracyScreen` |
+| Knowledge · Notes | `/knowledge/notes` | `NotesScreen` |
+| Knowledge · Note editor | `/knowledge/notes/new`, `/knowledge/notes/:id` | `NoteEditorScreen` |
+| Knowledge · Resources | `/knowledge/resources` | `ResourcesScreen` |
+
+**Empty states:** Analytics and skills screens use three data states (threshold not met · partial · full). See `.cursor/rules/analytics-skills-empty-states.mdc`.
+
 **Query parameters:**
 
 - `/tasks/new?projectId=…&title=…` — pre-fill project link and title
@@ -251,7 +276,9 @@ On first shell mount, if an interrupted `focus_sessions` row exists (`endedAt IS
 
 ## Data model
 
-**Schema version:** 6
+**Schema version:** 8
+
+Additional tables (v7–v8): `certifications`, `notes`, `resources`.
 
 ### Tasks
 
@@ -468,8 +495,13 @@ ciara_os_backend/
 |--------|------|-------------|
 | GET | `/health` | `{"status": "ok"}` |
 | POST | `/api/brief` | Executive Brief from JSON context |
+| GET | `/api/github/activity` | GitHub profile, week commits, streak, languages |
+| GET | `/api/github/repos/{name}` | Single repo detail |
+| GET | `/api/security/hackthebox` | HTB profile and activity (requires `HTB_API_KEY`) |
+| GET | `/api/security/hackerone` | HackerOne profile (requires `H1_USERNAME`, `H1_API_TOKEN`) |
+| POST/GET | `/api/security/log` | Manual security practice log |
 
-**Environment:** `GROQ_API_KEY` in `.env`. Restart uvicorn after changing `.env` (reload does not refresh env).
+**Environment:** `GROQ_API_KEY`, `GITHUB_TOKEN`, `HTB_API_KEY`, `H1_USERNAME`, `H1_API_TOKEN` in `.env`. Restart uvicorn after changing `.env` (reload does not refresh env).
 
 **Run:**
 
@@ -604,6 +636,16 @@ Application pipeline by stage. `OpportunityCard` uses `IntrinsicHeight` for list
 
 **Executive Debrief** — weekly loop closure.
 
+**Header structure** (`ReviewScreenHeader`):
+
+```
+EXECUTIVE DEBRIEF
+Week 27 • June 29 – July 5, 2026
+Strategic performance analysis and system recalibration.
+```
+
+Week number and date range derive from `mondayOfWeek(DateTime.now())` via `reviewWeekHeaderLabel()` in `review_stats_utils.dart`. The header sits close to `TodayHeader` with compact top padding.
+
 - Execution Score (weighted formula)  
 - Timeline (Mon–Sun quality bars)  
 - Weekly narrative + insights  
@@ -647,6 +689,29 @@ Title, domain, priority, status (edit), estimate, deadline, project, today flag,
 ### Project & Opportunity detail / forms
 
 As documented in prior sections — pipeline stepper, documents checklist, fit notes, lead quality, linked tasks.
+
+### Sidebar — Skills
+
+| Screen | Data source | Notes |
+|--------|-------------|-------|
+| GitHub Activity | Backend → GitHub API | Token auth, 2hr cache, manual sync |
+| Security Practice | Backend → HTB + HackerOne | Three-state empty UI; manual log fallback |
+| Certifications | Local SQLite | CRUD with bottom sheet |
+
+### Sidebar — Analytics
+
+| Screen | Threshold | Data source |
+|--------|-----------|-------------|
+| Productivity Trends | 4 weekly reviews | `allWeeklyReviewsProvider` + task focus history |
+| Domain Breakdown | None | Tasks by domain and period |
+| Planning Accuracy | 5 tasks with estimates | `allTasksProvider` (`planningAccuracy != null`) |
+
+### Sidebar — Knowledge
+
+| Screen | Storage |
+|--------|---------|
+| Notes | SQLite `notes` — list, FAB, editor |
+| Resources | SQLite `resources` — bookmarks and links |
 
 ---
 
@@ -738,6 +803,9 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 | Notifications | Toggle saved; no delivery |
 | Cloud sync / auth | Not planned for v1 |
 | Executive Brief | **Live** — requires local backend + Groq key |
+| GitHub / Security APIs | **Live** — requires backend + API keys |
+| Productivity Trends | **Live** — unlocks after 4 weekly reviews |
+| Planning Accuracy | **Live** — unlocks after 5 estimated task completions |
 | More AI endpoints | Backend flat structure ready to extend |
 | `Productivity Index` | Removed; replaced by Performance Snapshot |
 
@@ -754,6 +822,14 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 | `screens/primary/projects_screen.dart` | `/projects` |
 | `screens/primary/opportunities_screen.dart` | `/opportunities` |
 | `screens/primary/review_screen.dart` | `/review` |
+| `screens/analytics/productivity_trends_screen.dart` | `/analytics/trends` |
+| `screens/analytics/domain_breakdown_screen.dart` | `/analytics/domains` |
+| `screens/analytics/planning_accuracy_screen.dart` | `/analytics/accuracy` |
+| `screens/skills/github_activity_screen.dart` | `/skills/github` |
+| `screens/skills/security_practice_screen.dart` | `/skills/ctf` |
+| `screens/skills/certifications_screen.dart` | `/skills/certifications` |
+| `screens/knowledge/notes_screen.dart` | `/knowledge/notes` |
+| `screens/knowledge/resources_screen.dart` | `/knowledge/resources` |
 | `screens/secondary/onboarding_screen.dart` | `/onboarding` |
 | `screens/secondary/profile_screen.dart` | `/profile` |
 | `screens/secondary/settings_screen.dart` | `/settings` |
@@ -807,8 +883,9 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 |------|------|
 | `utils/task_filter_utils.dart` | Filters, `taskCompletedToday`, `tasksForPerformanceDay` |
 | `utils/deep_work_utils.dart` | Goal constants, planning accuracy |
-| `utils/review_stats_utils.dart` | Week boundaries, started rates |
+| `utils/review_stats_utils.dart` | Week boundaries, ISO week labels, started rates |
+| `widgets/review/review_screen_header.dart` | Executive Debrief title + week/date range |
 
 ---
 
-*Last updated: Executive Brief AI layer, today-completion semantics, Performance Snapshot day metrics, Profile/Settings screens, optional `ciara_os_backend`.*
+*Last updated: schema v8, sidebar screens (skills/analytics/knowledge), backend GitHub+security APIs, three-state empty UI, Review header week/date line.*

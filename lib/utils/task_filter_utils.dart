@@ -24,6 +24,7 @@ List<Task> applyTaskFilters({
   Domain? domain,
   String? deadline,
   TaskStatus? status,
+  bool excludeDone = false,
   DateTime? now,
 }) {
   final clock = now ?? DateTime.now();
@@ -35,6 +36,9 @@ List<Task> applyTaskFilters({
 
   if (status != null) {
     filtered = filtered.where((task) => task.status == status).toList();
+  } else if (excludeDone) {
+    filtered =
+        filtered.where((task) => task.status != TaskStatus.done).toList();
   }
 
   if (deadline != null) {

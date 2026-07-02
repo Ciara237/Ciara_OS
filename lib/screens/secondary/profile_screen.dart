@@ -32,74 +32,161 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   static const _avatarSize = 64.0;
 
-  bool _isEditingTagline = false;
-  bool _isEditingName = false;
-  late final TextEditingController _taglineController;
-  late final TextEditingController _nameController;
-
   @override
   void initState() {
     super.initState();
-    _taglineController = TextEditingController();
-    _nameController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileProvider.notifier).reload();
     });
   }
 
-  @override
-  void dispose() {
-    _taglineController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
+  Future<void> _showEditProfileDialog(ProfileData profile) async {
+    final nameController = TextEditingController(
+      text: profile.resolvedDisplayName == 'Your Name'
+          ? ''
+          : profile.resolvedDisplayName,
+    );
+    final bioController = TextEditingController(text: profile.tagline);
 
-  Future<void> _saveTagline(String value) async {
-    await ref.read(profileProvider.notifier).saveTagline(value);
-    if (!mounted) {
-      return;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final colorScheme = Theme.of(dialogContext).colorScheme;
+
+        return AlertDialog(
+          backgroundColor: colorScheme.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          ),
+          title: Text(
+            'Edit Profile',
+            style: AppTypography.headingMedium.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
+          content: SizedBox(
+            width: 320,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'USERNAME',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.words,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Your name',
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerLow,
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'BIO',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                TextField(
+                  controller: bioController,
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Short tagline or bio',
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerLow,
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                'Cancel',
+                style: AppTypography.labelLarge.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (nameController.text.trim().isEmpty) {
+                  return;
+                }
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (saved == true && mounted) {
+      await ref
+          .read(profileProvider.notifier)
+          .saveDisplayName(nameController.text);
+      await ref.read(profileProvider.notifier).saveTagline(bioController.text);
     }
-    setState(() => _isEditingTagline = false);
-  }
 
-  Future<void> _saveName(String value) async {
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) {
-      return;
-    }
-    await ref.read(profileProvider.notifier).saveDisplayName(trimmed);
-    if (!mounted) {
-      return;
-    }
-    setState(() => _isEditingName = false);
-  }
-
-  void _startEditingTagline(String currentTagline) {
-    _taglineController.text = currentTagline;
-    setState(() => _isEditingTagline = true);
-  }
-
-  Future<void> _confirmTaglineEdit() async {
-    await _saveTagline(_taglineController.text);
-  }
-
-  void _cancelTaglineEdit(String currentTagline) {
-    _taglineController.text = currentTagline;
-    setState(() => _isEditingTagline = false);
-  }
-
-  void _startEditingName(String currentName) {
-    _nameController.text = currentName;
-    setState(() => _isEditingName = true);
-  }
-
-  Future<void> _confirmNameEdit() async {
-    await _saveName(_nameController.text);
-  }
-
-  void _cancelNameEdit(String currentName) {
-    _nameController.text = currentName;
-    setState(() => _isEditingName = false);
+    nameController.dispose();
+    bioController.dispose();
   }
 
   Future<void> _setThemeMode(ThemeMode mode) async {
@@ -152,19 +239,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   displayName: profile.resolvedDisplayName,
                   initials: profile.initials,
                   tagline: profile.tagline,
-                  isEditingName: _isEditingName,
-                  isEditingTagline: _isEditingTagline,
-                  nameController: _nameController,
-                  taglineController: _taglineController,
-                  onStartEditName: () =>
-                      _startEditingName(profile.resolvedDisplayName),
-                  onConfirmNameEdit: _confirmNameEdit,
-                  onCancelNameEdit: () =>
-                      _cancelNameEdit(profile.resolvedDisplayName),
-                  onStartEditTagline: () => _startEditingTagline(profile.tagline),
-                  onConfirmTaglineEdit: _confirmTaglineEdit,
-                  onCancelTaglineEdit: () =>
-                      _cancelTaglineEdit(profile.tagline),
+                  onEdit: () => _showEditProfileDialog(profile),
                 ),
                 const SizedBox(height: AppSpacing.reviewGap),
                 _QuickStatsRow(
@@ -284,31 +359,13 @@ class _IdentitySection extends StatelessWidget {
     required this.displayName,
     required this.initials,
     required this.tagline,
-    required this.isEditingName,
-    required this.isEditingTagline,
-    required this.nameController,
-    required this.taglineController,
-    required this.onStartEditName,
-    required this.onConfirmNameEdit,
-    required this.onCancelNameEdit,
-    required this.onStartEditTagline,
-    required this.onConfirmTaglineEdit,
-    required this.onCancelTaglineEdit,
+    required this.onEdit,
   });
 
   final String displayName;
   final String initials;
   final String tagline;
-  final bool isEditingName;
-  final bool isEditingTagline;
-  final TextEditingController nameController;
-  final TextEditingController taglineController;
-  final VoidCallback onStartEditName;
-  final VoidCallback onConfirmNameEdit;
-  final VoidCallback onCancelNameEdit;
-  final VoidCallback onStartEditTagline;
-  final VoidCallback onConfirmTaglineEdit;
-  final VoidCallback onCancelTaglineEdit;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -328,124 +385,39 @@ class _IdentitySection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        if (isEditingName)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: nameController,
-                    autofocus: true,
-                    textAlign: TextAlign.center,
-                    textCapitalization: TextCapitalization.words,
-                    style: AppTypography.headingLarge.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: colorScheme.primary),
-                      ),
-                    ),
-                    onSubmitted: (_) => onConfirmNameEdit(),
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                displayName,
+                textAlign: TextAlign.center,
+                style: AppTypography.headingLarge.copyWith(
+                  color: colorScheme.onSurface,
                 ),
-                IconButton(
-                  onPressed: onConfirmNameEdit,
-                  icon: Icon(Icons.check, color: colorScheme.primary),
-                ),
-                IconButton(
-                  onPressed: onCancelNameEdit,
-                  icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
-                ),
-              ],
+              ),
             ),
-          )
-        else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  displayName,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.headingLarge.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
+            IconButton(
+              onPressed: onEdit,
+              icon: Icon(
+                Icons.edit_outlined,
+                size: AppSpacing.md,
+                color: colorScheme.onSurfaceVariant,
               ),
-              IconButton(
-                onPressed: onStartEditName,
-                icon: Icon(
-                  Icons.edit_outlined,
-                  size: AppSpacing.md,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                padding: const EdgeInsets.only(left: AppSpacing.xs),
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
+              padding: const EdgeInsets.only(left: AppSpacing.xs),
+              constraints: const BoxConstraints(),
+              tooltip: 'Edit profile',
+            ),
+          ],
+        ),
         const SizedBox(height: AppSpacing.sm),
-        if (isEditingTagline)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: taglineController,
-                    autofocus: true,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodyLarge.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: colorScheme.primary),
-                      ),
-                    ),
-                    onSubmitted: (_) => onConfirmTaglineEdit(),
-                  ),
-                ),
-                IconButton(
-                  onPressed: onConfirmTaglineEdit,
-                  icon: Icon(Icons.check, color: colorScheme.primary),
-                ),
-                IconButton(
-                  onPressed: onCancelTaglineEdit,
-                  icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
-                ),
-              ],
-            ),
-          )
-        else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  tagline,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.bodyLarge.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: onStartEditTagline,
-                icon: Icon(
-                  Icons.edit_outlined,
-                  size: AppSpacing.md,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                padding: const EdgeInsets.only(left: AppSpacing.xs),
-                constraints: const BoxConstraints(),
-              ),
-            ],
+        Text(
+          tagline,
+          textAlign: TextAlign.center,
+          style: AppTypography.bodyLarge.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
+        ),
       ],
     );
   }

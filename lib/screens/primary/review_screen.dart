@@ -221,6 +221,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               ),
               data: (debrief) {
                 _seedPriorities(debrief.suggestedPriorities);
+                final weekMonday = mondayOfWeek(DateTime.now());
 
                 return Center(
                   child: ConstrainedBox(
@@ -230,16 +231,17 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     child: ListView(
                       padding: EdgeInsets.fromLTRB(
                         horizontalPadding,
-                        AppSpacing.reviewPadding,
+                        AppSpacing.lg,
                         horizontalPadding,
                         AppSpacing.xxl,
                       ),
                       children: [
                         ReviewScreenHeader(
+                          weekMonday: weekMonday,
                           onExport: _exportLogs,
                           onFinalize: _finalizeReview,
                         ),
-                        const SizedBox(height: AppSpacing.reviewGap),
+                        const SizedBox(height: AppSpacing.lg),
                         _CompactExecutionScore(debrief: debrief),
                         const SizedBox(height: AppSpacing.md),
                         _CompactMetricsStrip(debrief: debrief),

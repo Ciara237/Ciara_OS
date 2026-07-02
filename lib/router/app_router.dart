@@ -9,6 +9,7 @@ import 'package:ciaraos/screens/secondary/opportunity_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/opportunity_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/settings_screen.dart';
 import 'package:ciaraos/screens/secondary/profile_screen.dart';
+import 'package:ciaraos/screens/analytics/completed_tasks_screen.dart';
 import 'package:ciaraos/screens/analytics/domain_breakdown_screen.dart';
 import 'package:ciaraos/screens/analytics/planning_accuracy_screen.dart';
 import 'package:ciaraos/screens/analytics/productivity_trends_screen.dart';
@@ -136,6 +137,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/knowledge/resources',
         builder: (context, state) => const ResourcesScreen(),
+      ),
+      GoRoute(
+        path: '/tasks/completed',
+        builder: (context, state) => const CompletedTasksScreen(),
       ),
       GoRoute(
         path: '/tasks/new',

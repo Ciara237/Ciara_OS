@@ -29,10 +29,13 @@ class OpportunityMetadataSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            Text(
-              'Lead Quality',
-              style: AppTypography.labelSmall.copyWith(
-                color: colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                'Lead Quality',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -75,18 +78,26 @@ class _MetadataRow extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTypography.labelSmall.copyWith(
-            color: colorScheme.onSurfaceVariant,
+        Flexible(
+          fit: FlexFit.loose,
+          child: Text(
+            label,
+            style: AppTypography.labelSmall.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        Text(
-          value,
-          style: AppTypography.labelSmall.copyWith(
-            color: colorScheme.onSurface,
+        Expanded(
+          child: Text(
+            value,
+            style: AppTypography.labelSmall.copyWith(
+              color: colorScheme.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
           ),
         ),
       ],
