@@ -9,6 +9,14 @@ import 'package:ciaraos/screens/secondary/opportunity_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/opportunity_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/settings_screen.dart';
 import 'package:ciaraos/screens/secondary/profile_screen.dart';
+import 'package:ciaraos/screens/analytics/domain_breakdown_screen.dart';
+import 'package:ciaraos/screens/analytics/planning_accuracy_screen.dart';
+import 'package:ciaraos/screens/analytics/productivity_trends_screen.dart';
+import 'package:ciaraos/screens/knowledge/notes_screen.dart';
+import 'package:ciaraos/screens/knowledge/resources_screen.dart';
+import 'package:ciaraos/screens/skills/certifications_screen.dart';
+import 'package:ciaraos/screens/skills/ctf_tracker_screen.dart';
+import 'package:ciaraos/screens/skills/github_activity_screen.dart';
 import 'package:ciaraos/screens/secondary/project_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/project_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/task_create_edit_screen.dart';
@@ -78,6 +86,38 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/skills/github',
+        builder: (context, state) => const GitHubActivityScreen(),
+      ),
+      GoRoute(
+        path: '/skills/ctf',
+        builder: (context, state) => const CtfTrackerScreen(),
+      ),
+      GoRoute(
+        path: '/skills/certifications',
+        builder: (context, state) => const CertificationsScreen(),
+      ),
+      GoRoute(
+        path: '/analytics/trends',
+        builder: (context, state) => const ProductivityTrendsScreen(),
+      ),
+      GoRoute(
+        path: '/analytics/domains',
+        builder: (context, state) => const DomainBreakdownScreen(),
+      ),
+      GoRoute(
+        path: '/analytics/accuracy',
+        builder: (context, state) => const PlanningAccuracyScreen(),
+      ),
+      GoRoute(
+        path: '/knowledge/notes',
+        builder: (context, state) => const NotesScreen(),
+      ),
+      GoRoute(
+        path: '/knowledge/resources',
+        builder: (context, state) => const ResourcesScreen(),
       ),
       GoRoute(
         path: '/tasks/new',

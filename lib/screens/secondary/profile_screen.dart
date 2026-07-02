@@ -8,6 +8,7 @@ import 'package:ciaraos/providers/opportunity_providers.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/providers/theme_provider.dart';
+import 'package:ciaraos/providers/profile_providers.dart';
 import 'package:ciaraos/services/profile_preferences.dart';
 import 'package:ciaraos/theme/app_colors.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
@@ -15,9 +16,11 @@ import 'package:ciaraos/theme/app_theme.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/domain_icons.dart';
 import 'package:ciaraos/utils/review_stats_utils.dart';
+import 'package:ciaraos/widgets/profile/profile_name_prompt_dialog.dart';
+import 'package:ciaraos/widgets/navigation/primary_drawer.dart';
+import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -34,53 +37,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   static const _avatarSize = 64.0;
 
   bool _isEditingTagline = false;
+  bool _isEditingName = false;
   late final TextEditingController _taglineController;
-  String _tagline = defaultProfileTagline;
-  bool _taglineLoaded = false;
+  late final TextEditingController _nameController;
+  bool _profileLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _taglineController = TextEditingController();
-    _loadTagline();
+    _nameController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileProvider.notifier).reload();
+    });
   }
 
   @override
   void dispose() {
     _taglineController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadTagline() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString(profileTaglinePreferenceKey);
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _tagline = saved ?? defaultProfileTagline;
-      _taglineController.text = _tagline;
-      _taglineLoaded = true;
-    });
-  }
-
   Future<void> _saveTagline(String value) async {
-    final trimmed = value.trim();
-    final next = trimmed.isEmpty ? defaultProfileTagline : trimmed;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(profileTaglinePreferenceKey, next);
+    await ref.read(profileProvider.notifier).saveTagline(value);
     if (!mounted) {
       return;
     }
-    setState(() {
-      _tagline = next;
-      _taglineController.text = next;
-      _isEditingTagline = false;
-    });
+    setState(() => _isEditingTagline = false);
   }
 
-  void _startEditingTagline() {
-    _taglineController.text = _tagline;
+  Future<void> _saveName(String value) async {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    await ref.read(profileProvider.notifier).saveDisplayName(trimmed);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isEditingName = false);
+  }
+
+  void _startEditingTagline(String currentTagline) {
+    _taglineController.text = currentTagline;
     setState(() => _isEditingTagline = true);
   }
 
@@ -88,9 +88,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     await _saveTagline(_taglineController.text);
   }
 
-  void _cancelTaglineEdit() {
-    _taglineController.text = _tagline;
+  void _cancelTaglineEdit(String currentTagline) {
+    _taglineController.text = currentTagline;
     setState(() => _isEditingTagline = false);
+  }
+
+  void _startEditingName(String currentName) {
+    _nameController.text = currentName;
+    setState(() => _isEditingName = true);
+  }
+
+  Future<void> _confirmNameEdit() async {
+    await _saveName(_nameController.text);
+  }
+
+  void _cancelNameEdit(String currentName) {
+    _nameController.text = currentName;
+    setState(() => _isEditingName = false);
+  }
+
+  Future<void> _promptForName() async {
+    await showProfileNamePromptDialog(context, ref, isFirstTime: false);
   }
 
   Future<void> _setThemeMode(ThemeMode mode) async {
@@ -114,37 +132,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final opportunitiesAsync = ref.watch(allOpportunitiesProvider);
     final weekTasksAsync = ref.watch(weekTasksProvider(currentMonday));
     final themeMode = ref.watch(themeModeProvider);
+    final profile = ref.watch(profileProvider);
 
-    if (!_taglineLoaded) {
+    if (!_profileLoaded && profile.isNameConfigured) {
+      _profileLoaded = true;
+    }
+
+    if (!_profileLoaded && profile.displayName.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _profileLoaded = true);
+        }
+      });
+    }
+
+    final isReady = profile.isNameConfigured || profile.displayName.isNotEmpty;
+
+    if (!isReady) {
       return Scaffold(
+        drawer: const PrimaryDrawer(),
         backgroundColor: colorScheme.surface,
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Column(
+          children: [
+            TodayHeader(),
+            Expanded(child: Center(child: CircularProgressIndicator())),
+          ],
+        ),
       );
     }
 
     return Scaffold(
+      drawer: const PrimaryDrawer(),
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSpacing.containerMax),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              children: [
-                _ProfileHeader(onBack: () => context.pop()),
+      body: Column(
+        children: [
+          const TodayHeader(),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: AppSpacing.containerMax),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
+                    ),
+                    children: [
+                      const _ProfileHeader(),
                 const SizedBox(height: AppSpacing.reviewGap),
                 _IdentitySection(
-                  tagline: _tagline,
+                  displayName: profile.resolvedDisplayName,
+                  initials: profile.initials,
+                  tagline: profile.tagline,
+                  isEditingName: _isEditingName,
                   isEditingTagline: _isEditingTagline,
+                  nameController: _nameController,
                   taglineController: _taglineController,
-                  onStartEdit: _startEditingTagline,
-                  onConfirmEdit: _confirmTaglineEdit,
-                  onCancelEdit: _cancelTaglineEdit,
+                  onStartEditName: () =>
+                      _startEditingName(profile.resolvedDisplayName),
+                  onConfirmNameEdit: _confirmNameEdit,
+                  onCancelNameEdit: () =>
+                      _cancelNameEdit(profile.resolvedDisplayName),
+                  onPromptForName: _promptForName,
+                  onStartEditTagline: () => _startEditingTagline(profile.tagline),
+                  onConfirmTaglineEdit: _confirmTaglineEdit,
+                  onCancelTaglineEdit: () =>
+                      _cancelTaglineEdit(profile.tagline),
                 ),
                 const SizedBox(height: AppSpacing.reviewGap),
                 _QuickStatsRow(
@@ -198,6 +255,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
       ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -240,31 +300,18 @@ class _DomainStat {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.onBack});
-
-  final VoidCallback onBack;
+  const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Row(
-      children: [
-        IconButton(
-          onPressed: onBack,
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Text(
-          'PROFILE',
-          style: AppTypography.monospace.copyWith(
-            color: colorScheme.onSurface,
-            letterSpacing: 1.2,
-          ),
-        ),
-      ],
+    return Text(
+      'PROFILE',
+      style: AppTypography.monospace.copyWith(
+        color: colorScheme.onSurface,
+        letterSpacing: 1.2,
+      ),
     );
   }
 }

@@ -3,19 +3,19 @@ import 'package:ciaraos/models/weekly_debrief.dart';
 import 'package:ciaraos/models/weekly_review.dart';
 import 'package:ciaraos/providers/weekly_debrief_providers.dart';
 import 'package:ciaraos/providers/weekly_review_providers.dart';
+import 'package:ciaraos/services/daily_activity_stats.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/review_stats_utils.dart';
-import 'package:ciaraos/widgets/review/execution_insights_panel.dart';
-import 'package:ciaraos/widgets/review/execution_summary_card.dart';
-import 'package:ciaraos/widgets/review/execution_timeline.dart';
 import 'package:ciaraos/widgets/review/next_actions_checklist.dart';
 import 'package:ciaraos/widgets/review/reflection_card.dart';
+import 'package:ciaraos/widgets/review/review_card.dart';
 import 'package:ciaraos/widgets/review/review_screen_header.dart';
 import 'package:ciaraos/widgets/review/weekly_narrative_card.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 const _reflectionWorkedHint =
     'Document the wins, the completed sprints, and the systems that held firm...';
@@ -240,16 +240,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           onFinalize: _finalizeReview,
                         ),
                         const SizedBox(height: AppSpacing.reviewGap),
-                        ExecutionSummaryCard(debrief: debrief),
-                        const SizedBox(height: AppSpacing.reviewGap),
-                        ExecutionTimeline(days: debrief.metrics.timeline),
+                        _CompactExecutionScore(debrief: debrief),
+                        const SizedBox(height: AppSpacing.md),
+                        _CompactMetricsStrip(debrief: debrief),
                         const SizedBox(height: AppSpacing.reviewGap),
                         WeeklyNarrativeCard(narrative: debrief.narrative),
                         const SizedBox(height: AppSpacing.reviewGap),
                         if (isWide)
-                          _wideReflectionRow(debrief)
+                          _wideReflectionRow()
                         else
-                          _narrowReflectionColumn(debrief),
+                          _narrowReflectionColumn(),
                       ],
                     ),
                   ),
@@ -262,7 +262,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     );
   }
 
-  Widget _wideReflectionRow(WeeklyDebrief debrief) {
+  Widget _wideReflectionRow() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -273,31 +273,22 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         const SizedBox(width: AppSpacing.reviewGap),
         Expanded(
           flex: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ExecutionInsightsPanel(insights: debrief.insights),
-              const SizedBox(height: AppSpacing.reviewGap),
-              NextActionsChecklist(
-                items: _nextActions,
-                newActionController: _newActionController,
-                onToggle: _toggleNextAction,
-                onAdd: _addNextAction,
-              ),
-            ],
+          child: NextActionsChecklist(
+            items: _nextActions,
+            newActionController: _newActionController,
+            onToggle: _toggleNextAction,
+            onAdd: _addNextAction,
           ),
         ),
       ],
     );
   }
 
-  Widget _narrowReflectionColumn(WeeklyDebrief debrief) {
+  Widget _narrowReflectionColumn() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _reflectionGrid(isWide: false),
-        const SizedBox(height: AppSpacing.reviewGap),
-        ExecutionInsightsPanel(insights: debrief.insights),
         const SizedBox(height: AppSpacing.reviewGap),
         NextActionsChecklist(
           items: _nextActions,
@@ -351,6 +342,128 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         slowed,
         const SizedBox(height: AppSpacing.reviewGap),
         improvement,
+      ],
+    );
+  }
+}
+
+class _CompactExecutionScore extends StatelessWidget {
+  const _CompactExecutionScore({required this.debrief});
+
+  final WeeklyDebrief debrief;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final score = debrief.executionScore.round();
+
+    return ReviewCard(
+      child: Row(
+        children: [
+          Text(
+            '$score%',
+            style: AppTypography.headingLarge.copyWith(
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Text(
+            'Execution Score',
+            style: AppTypography.bodyMedium.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactMetricsStrip extends StatelessWidget {
+  const _CompactMetricsStrip({required this.debrief});
+
+  final WeeklyDebrief debrief;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final metrics = debrief.metrics;
+    final startedRate = (metrics.taskCompletionRate * 100).round();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ReviewCard(
+          child: Row(
+            children: [
+              Expanded(
+                child: _MetricCell(
+                  label: 'Started rate',
+                  value: '$startedRate%',
+                ),
+              ),
+              Expanded(
+                child: _MetricCell(
+                  label: 'Tasks completed',
+                  value: '${metrics.tasksCompleted}',
+                ),
+              ),
+              Expanded(
+                child: _MetricCell(
+                  label: 'Focus hours',
+                  value: formatFocusUptime(metrics.deepWorkSeconds),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => context.go('/analytics/trends'),
+            child: Text(
+              'View Full Analytics →',
+              style: AppTypography.labelLarge.copyWith(
+                color: colorScheme.primary,
+                decoration: TextDecoration.none,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MetricCell extends StatelessWidget {
+  const _MetricCell({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: AppTypography.headingMedium.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }

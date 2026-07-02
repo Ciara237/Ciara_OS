@@ -1,10 +1,13 @@
 import 'package:ciaraos/providers/onboarding_provider.dart';
 import 'package:ciaraos/providers/theme_provider.dart';
 import 'package:ciaraos/services/data_management_service.dart';
+import 'package:ciaraos/providers/profile_providers.dart';
 import 'package:ciaraos/services/profile_preferences.dart';
 import 'package:ciaraos/services/settings_preferences.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/widgets/navigation/primary_drawer.dart';
+import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,17 +29,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _confirmController;
   bool _confirmError = false;
   String _profileTagline = defaultProfileTagline;
+  String _githubUsername = defaultGithubUsername;
+  bool _isEditingGithubUsername = false;
+  late final TextEditingController _githubUsernameController;
 
   @override
   void initState() {
     super.initState();
     _confirmController = TextEditingController();
+    _githubUsernameController = TextEditingController();
     _loadPreferences();
   }
 
   @override
   void dispose() {
     _confirmController.dispose();
+    _githubUsernameController.dispose();
     super.dispose();
   }
 
@@ -50,6 +58,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           prefs.getBool(notificationsEnabledPreferenceKey) ?? false;
       _profileTagline =
           prefs.getString(profileTaglinePreferenceKey) ?? defaultProfileTagline;
+      _githubUsername =
+          prefs.getString(githubUsernamePreferenceKey) ?? defaultGithubUsername;
+      _githubUsernameController.text = _githubUsername;
       _prefsLoaded = true;
     });
   }
@@ -70,6 +81,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _saveGithubUsername() async {
+    final normalized = normalizeGithubUsername(_githubUsernameController.text);
+    if (!isValidGithubUsername(normalized)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('GitHub username cannot contain spaces or @.'),
+        ),
+      );
+      return;
+    }
+
+    await ref.read(profileProvider.notifier).saveGithubUsername(normalized);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _githubUsername = normalized;
+      _githubUsernameController.text = normalized;
+      _isEditingGithubUsername = false;
+    });
+  }
+
+  void _startEditingGithubUsername() {
+    _githubUsernameController.text = _githubUsername;
+    setState(() => _isEditingGithubUsername = true);
+  }
+
+  void _cancelGithubUsernameEdit() {
+    _githubUsernameController.text = _githubUsername;
+    setState(() => _isEditingGithubUsername = false);
   }
 
   Future<void> _openGithub() async {
@@ -223,26 +266,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     if (!_prefsLoaded) {
       return Scaffold(
+        drawer: const PrimaryDrawer(),
         backgroundColor: colorScheme.surface,
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Column(
+          children: [
+            TodayHeader(),
+            Expanded(child: Center(child: CircularProgressIndicator())),
+          ],
+        ),
       );
     }
 
     return Scaffold(
+      drawer: const PrimaryDrawer(),
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSpacing.containerMax),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
-              children: [
-                _SettingsHeader(onBack: () => context.pop()),
+      body: Column(
+        children: [
+          const TodayHeader(),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: AppSpacing.containerMax),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
+                    ),
+                    children: [
+                      const _SettingsHeader(),
                 const SizedBox(height: AppSpacing.reviewGap),
                 _SettingsSection(
                   label: 'APPEARANCE',
@@ -307,6 +363,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: AppSpacing.reviewGap),
+                _SettingsSection(
+                  label: 'INTEGRATIONS',
+                  child: _isEditingGithubUsername
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _githubUsernameController,
+                                autofocus: true,
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: colorScheme.onSurface,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'GitHub Username',
+                                  isDense: true,
+                                ),
+                                onSubmitted: (_) => _saveGithubUsername(),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _saveGithubUsername,
+                              icon: Icon(Icons.check, color: colorScheme.primary),
+                            ),
+                            IconButton(
+                              onPressed: _cancelGithubUsernameEdit,
+                              icon: Icon(
+                                Icons.close,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        )
+                      : _SettingsActionRow(
+                          title: 'GitHub Username',
+                          subtitle: _githubUsername,
+                          onTap: _startEditingGithubUsername,
+                          trailing: Icon(
+                            Icons.edit_outlined,
+                            size: AppSpacing.md,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: AppSpacing.reviewGap),
                 _SettingsSection(
@@ -389,36 +489,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
       ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _SettingsHeader extends StatelessWidget {
-  const _SettingsHeader({required this.onBack});
-
-  final VoidCallback onBack;
+  const _SettingsHeader();
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Row(
-      children: [
-        IconButton(
-          onPressed: onBack,
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Text(
-          'SETTINGS',
-          style: AppTypography.monospace.copyWith(
-            color: colorScheme.onSurface,
-            letterSpacing: 1.2,
-          ),
-        ),
-      ],
+    return Text(
+      'SETTINGS',
+      style: AppTypography.monospace.copyWith(
+        color: colorScheme.onSurface,
+        letterSpacing: 1.2,
+      ),
     );
   }
 }
@@ -557,12 +647,14 @@ class _SettingsActionRow extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.titleColor,
+    this.trailing,
   });
 
   final String title;
   final String subtitle;
   final VoidCallback onTap;
   final Color? titleColor;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -597,10 +689,11 @@ class _SettingsActionRow extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              trailing ??
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ],
           ),
         ),
