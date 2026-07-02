@@ -1,4 +1,6 @@
 import 'package:ciaraos/theme/app_spacing.dart';
+import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/widgets/today/executive_brief_card.dart';
 import 'package:ciaraos/widgets/today/today_action_row.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:ciaraos/widgets/today/today_screen_label.dart';
@@ -42,6 +44,10 @@ class TodayScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.lg),
                       const TodayActionRow(),
                       const SizedBox(height: AppSpacing.lg),
+                      const ExecutiveBriefCard(),
+                      const SizedBox(height: AppSpacing.lg),
+                      const _TodayFocusPlanLabel(),
+                      const SizedBox(height: AppSpacing.lg),
                       if (isWide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,6 +75,24 @@ class TodayScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TodayFocusPlanLabel extends StatelessWidget {
+  const _TodayFocusPlanLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Text(
+      "TODAY'S FOCUS PLAN",
+      style: AppTypography.labelLarge.copyWith(
+        color: colorScheme.onSurfaceVariant,
+        letterSpacing: 1.5,
+        decoration: TextDecoration.none,
       ),
     );
   }

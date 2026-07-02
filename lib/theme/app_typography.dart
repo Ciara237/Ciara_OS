@@ -58,4 +58,14 @@ abstract final class AppTypography {
 
   /// Terminal-style metadata (alias of code-label)
   static TextStyle get monospace => labelLarge;
+
+  static TextTheme get textTheme => TextTheme(
+        displayLarge: displayLarge,
+        headlineLarge: headingLarge,
+        headlineMedium: headingMedium,
+        bodyLarge: bodyLarge,
+        bodyMedium: bodyMedium,
+        labelLarge: labelLarge,
+        labelSmall: labelSmall,
+      );
 }

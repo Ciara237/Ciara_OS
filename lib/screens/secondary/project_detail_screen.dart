@@ -685,6 +685,7 @@ class _LinkedTaskRow extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.bodyLarge.copyWith(
                               color: colorScheme.onSurface,
+                              decoration: TextDecoration.none,
                             ),
                           ),
                         ),
@@ -732,6 +733,7 @@ class _TaskStatusChip extends StatelessWidget {
         label,
         style: AppTypography.labelSmall.copyWith(
           color: colorScheme.onSurfaceVariant,
+          decoration: TextDecoration.none,
         ),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,

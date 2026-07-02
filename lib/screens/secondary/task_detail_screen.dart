@@ -1013,6 +1013,7 @@ class _ParentProjectField extends StatelessWidget {
                     projectName ?? 'Loading project...',
                     style: AppTypography.bodyMedium.copyWith(
                       color: colorScheme.onSurface,
+                      decoration: TextDecoration.none,
                     ),
                   ),
                 ),

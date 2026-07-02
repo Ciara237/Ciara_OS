@@ -59,27 +59,36 @@ abstract final class AppTheme {
     required ColorScheme colorScheme,
     required Map<Domain, Color> domainColors,
   }) {
-    final textTheme = TextTheme(
+    final textTheme = AppTypography.textTheme.apply(
+      decoration: TextDecoration.none,
+    ).copyWith(
       displayLarge: AppTypography.displayLarge.copyWith(
         color: colorScheme.onSurface,
+        decoration: TextDecoration.none,
       ),
       headlineLarge: AppTypography.headingLarge.copyWith(
         color: colorScheme.onSurface,
+        decoration: TextDecoration.none,
       ),
       headlineMedium: AppTypography.headingMedium.copyWith(
         color: colorScheme.onSurface,
+        decoration: TextDecoration.none,
       ),
       bodyLarge: AppTypography.bodyLarge.copyWith(
         color: colorScheme.onSurface,
+        decoration: TextDecoration.none,
       ),
       bodyMedium: AppTypography.bodyMedium.copyWith(
         color: colorScheme.onSurface,
+        decoration: TextDecoration.none,
       ),
       labelLarge: AppTypography.labelLarge.copyWith(
         color: colorScheme.onSurfaceVariant,
+        decoration: TextDecoration.none,
       ),
       labelSmall: AppTypography.labelSmall.copyWith(
         color: colorScheme.onSurfaceVariant,
+        decoration: TextDecoration.none,
       ),
     );
 
