@@ -28,36 +28,49 @@ class TodayHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Row(
         children: [
-          UserAvatarButton(
-            size: _headerActionSize,
-            onTap: () => handleAvatarNavigation(context),
-          ),
-          const SizedBox(width: _headerGroupGap),
-          Icon(Icons.terminal, color: colorScheme.primary, size: 24),
-          const SizedBox(width: _headerGroupGap),
-          Text(
-            'Ciara OS',
-            style: AppTypography.headingMedium.copyWith(
-              color: colorScheme.onSurface,
+          SizedBox(
+            width: _headerActionSize,
+            child: UserAvatarButton(
+              size: _headerActionSize,
+              onTap: () => handleAvatarNavigation(context),
             ),
           ),
-          const Spacer(),
-          IconButton(
-            onPressed: () => context.push('/settings'),
-            icon: Icon(
-              Icons.settings_outlined,
-              color: colorScheme.onSurfaceVariant,
-              size: 24,
+          Expanded(
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.terminal, color: colorScheme.primary, size: 24),
+                  const SizedBox(width: _headerGroupGap),
+                  Text(
+                    'Ciara OS',
+                    style: AppTypography.headingMedium.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            constraints: const BoxConstraints(
-              minWidth: _headerActionSize,
-              minHeight: _headerActionSize,
+          ),
+          SizedBox(
+            width: _headerActionSize,
+            child: IconButton(
+              onPressed: () => context.push('/settings'),
+              icon: Icon(
+                Icons.settings_outlined,
+                color: colorScheme.onSurfaceVariant,
+                size: 24,
+              ),
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              constraints: const BoxConstraints(
+                minWidth: _headerActionSize,
+                minHeight: _headerActionSize,
+              ),
+              style: IconButton.styleFrom(
+                shape: const CircleBorder(),
+              ),
+              tooltip: 'Settings',
             ),
-            style: IconButton.styleFrom(
-              shape: const CircleBorder(),
-            ),
-            tooltip: 'Settings',
           ),
         ],
       ),

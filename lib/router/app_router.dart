@@ -15,8 +15,9 @@ import 'package:ciaraos/screens/analytics/productivity_trends_screen.dart';
 import 'package:ciaraos/screens/knowledge/notes_screen.dart';
 import 'package:ciaraos/screens/knowledge/resources_screen.dart';
 import 'package:ciaraos/screens/skills/certifications_screen.dart';
-import 'package:ciaraos/screens/skills/ctf_tracker_screen.dart';
+import 'package:ciaraos/screens/skills/security_practice_screen.dart';
 import 'package:ciaraos/screens/skills/github_activity_screen.dart';
+import 'package:ciaraos/screens/skills/github_repositories_screen.dart';
 import 'package:ciaraos/screens/secondary/project_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/project_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/task_create_edit_screen.dart';
@@ -90,10 +91,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/skills/github',
         builder: (context, state) => const GitHubActivityScreen(),
+        routes: [
+          GoRoute(
+            path: 'repos',
+            builder: (context, state) => const GitHubRepositoriesScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/skills/ctf',
-        builder: (context, state) => const CtfTrackerScreen(),
+        builder: (context, state) => const SecurityPracticeScreen(),
       ),
       GoRoute(
         path: '/skills/certifications',

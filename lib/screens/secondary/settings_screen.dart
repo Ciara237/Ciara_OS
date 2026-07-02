@@ -6,6 +6,7 @@ import 'package:ciaraos/services/profile_preferences.dart';
 import 'package:ciaraos/services/settings_preferences.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/widgets/navigation/minimal_back_header.dart';
 import 'package:ciaraos/widgets/navigation/primary_drawer.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
@@ -264,25 +265,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final themeMode = ref.watch(themeModeProvider);
 
+    final openedFromStack = GoRouter.of(context).canPop();
+
     if (!_prefsLoaded) {
       return Scaffold(
-        drawer: const PrimaryDrawer(),
+        drawer: openedFromStack ? null : const PrimaryDrawer(),
         backgroundColor: colorScheme.surface,
-        body: const Column(
+        body: Column(
           children: [
-            TodayHeader(),
-            Expanded(child: Center(child: CircularProgressIndicator())),
+            if (openedFromStack)
+              const MinimalBackHeader()
+            else
+              const TodayHeader(),
+            const Expanded(child: Center(child: CircularProgressIndicator())),
           ],
         ),
       );
     }
 
     return Scaffold(
-      drawer: const PrimaryDrawer(),
+      drawer: openedFromStack ? null : const PrimaryDrawer(),
       backgroundColor: colorScheme.surface,
       body: Column(
         children: [
-          const TodayHeader(),
+          if (openedFromStack)
+            const MinimalBackHeader()
+          else
+            const TodayHeader(),
           Expanded(
             child: SafeArea(
               top: false,

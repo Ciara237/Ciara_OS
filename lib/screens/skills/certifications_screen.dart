@@ -357,7 +357,7 @@ class _EarnedCardBody extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Text(
           certification.issuer,
-          style: AppTypography.bodySmall.copyWith(
+          style: AppTypography.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),
@@ -432,7 +432,7 @@ class _InProgressCardBody extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Target: ${DateFormat.yMMMd().format(certification.targetDate!)}',
-            style: AppTypography.bodySmall.copyWith(
+            style: AppTypography.bodyMedium.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
@@ -509,7 +509,7 @@ class _PlannedCardBody extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Target: ${DateFormat.yMMMd().format(certification.targetDate!)}',
-                  style: AppTypography.bodySmall.copyWith(
+                  style: AppTypography.bodyMedium.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),

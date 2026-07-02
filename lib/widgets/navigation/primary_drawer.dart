@@ -66,7 +66,7 @@ class PrimaryDrawer extends ConsumerWidget {
                         onTap: () => _navigate(context, '/skills/github'),
                       ),
                       _DrawerItem(
-                        label: 'CTF Tracker',
+                        label: 'Security Practice',
                         icon: Icons.security,
                         route: '/skills/ctf',
                         currentRoute: currentRoute,

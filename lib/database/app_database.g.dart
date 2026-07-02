@@ -4227,6 +4227,759 @@ class FocusSessionsCompanion extends UpdateCompanion<FocusSession> {
   }
 }
 
+class $CertificationsTable extends Certifications
+    with TableInfo<$CertificationsTable, Certification> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CertificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuerMeta = const VerificationMeta('issuer');
+  @override
+  late final GeneratedColumn<String> issuer = GeneratedColumn<String>(
+    'issuer',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _domainMeta = const VerificationMeta('domain');
+  @override
+  late final GeneratedColumn<String> domain = GeneratedColumn<String>(
+    'domain',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateEarnedMeta = const VerificationMeta(
+    'dateEarned',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateEarned = GeneratedColumn<DateTime>(
+    'date_earned',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetDateMeta = const VerificationMeta(
+    'targetDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> targetDate = GeneratedColumn<DateTime>(
+    'target_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _progressCurrentMeta = const VerificationMeta(
+    'progressCurrent',
+  );
+  @override
+  late final GeneratedColumn<int> progressCurrent = GeneratedColumn<int>(
+    'progress_current',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _progressTotalMeta = const VerificationMeta(
+    'progressTotal',
+  );
+  @override
+  late final GeneratedColumn<int> progressTotal = GeneratedColumn<int>(
+    'progress_total',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _priorityMeta = const VerificationMeta(
+    'priority',
+  );
+  @override
+  late final GeneratedColumn<String> priority = GeneratedColumn<String>(
+    'priority',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _externalLinkMeta = const VerificationMeta(
+    'externalLink',
+  );
+  @override
+  late final GeneratedColumn<String> externalLink = GeneratedColumn<String>(
+    'external_link',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    issuer,
+    domain,
+    status,
+    dateEarned,
+    targetDate,
+    progressCurrent,
+    progressTotal,
+    priority,
+    externalLink,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'certifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Certification> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('issuer')) {
+      context.handle(
+        _issuerMeta,
+        issuer.isAcceptableOrUnknown(data['issuer']!, _issuerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_issuerMeta);
+    }
+    if (data.containsKey('domain')) {
+      context.handle(
+        _domainMeta,
+        domain.isAcceptableOrUnknown(data['domain']!, _domainMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_domainMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('date_earned')) {
+      context.handle(
+        _dateEarnedMeta,
+        dateEarned.isAcceptableOrUnknown(data['date_earned']!, _dateEarnedMeta),
+      );
+    }
+    if (data.containsKey('target_date')) {
+      context.handle(
+        _targetDateMeta,
+        targetDate.isAcceptableOrUnknown(data['target_date']!, _targetDateMeta),
+      );
+    }
+    if (data.containsKey('progress_current')) {
+      context.handle(
+        _progressCurrentMeta,
+        progressCurrent.isAcceptableOrUnknown(
+          data['progress_current']!,
+          _progressCurrentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('progress_total')) {
+      context.handle(
+        _progressTotalMeta,
+        progressTotal.isAcceptableOrUnknown(
+          data['progress_total']!,
+          _progressTotalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('priority')) {
+      context.handle(
+        _priorityMeta,
+        priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
+      );
+    }
+    if (data.containsKey('external_link')) {
+      context.handle(
+        _externalLinkMeta,
+        externalLink.isAcceptableOrUnknown(
+          data['external_link']!,
+          _externalLinkMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Certification map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Certification(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      issuer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer'],
+      )!,
+      domain: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}domain'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      dateEarned: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_earned'],
+      ),
+      targetDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}target_date'],
+      ),
+      progressCurrent: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progress_current'],
+      )!,
+      progressTotal: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progress_total'],
+      )!,
+      priority: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}priority'],
+      ),
+      externalLink: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_link'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CertificationsTable createAlias(String alias) {
+    return $CertificationsTable(attachedDatabase, alias);
+  }
+}
+
+class Certification extends DataClass implements Insertable<Certification> {
+  final int id;
+  final String name;
+  final String issuer;
+  final String domain;
+  final String status;
+  final DateTime? dateEarned;
+  final DateTime? targetDate;
+  final int progressCurrent;
+  final int progressTotal;
+  final String? priority;
+  final String? externalLink;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Certification({
+    required this.id,
+    required this.name,
+    required this.issuer,
+    required this.domain,
+    required this.status,
+    this.dateEarned,
+    this.targetDate,
+    required this.progressCurrent,
+    required this.progressTotal,
+    this.priority,
+    this.externalLink,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['issuer'] = Variable<String>(issuer);
+    map['domain'] = Variable<String>(domain);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || dateEarned != null) {
+      map['date_earned'] = Variable<DateTime>(dateEarned);
+    }
+    if (!nullToAbsent || targetDate != null) {
+      map['target_date'] = Variable<DateTime>(targetDate);
+    }
+    map['progress_current'] = Variable<int>(progressCurrent);
+    map['progress_total'] = Variable<int>(progressTotal);
+    if (!nullToAbsent || priority != null) {
+      map['priority'] = Variable<String>(priority);
+    }
+    if (!nullToAbsent || externalLink != null) {
+      map['external_link'] = Variable<String>(externalLink);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CertificationsCompanion toCompanion(bool nullToAbsent) {
+    return CertificationsCompanion(
+      id: Value(id),
+      name: Value(name),
+      issuer: Value(issuer),
+      domain: Value(domain),
+      status: Value(status),
+      dateEarned: dateEarned == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dateEarned),
+      targetDate: targetDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetDate),
+      progressCurrent: Value(progressCurrent),
+      progressTotal: Value(progressTotal),
+      priority: priority == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priority),
+      externalLink: externalLink == null && nullToAbsent
+          ? const Value.absent()
+          : Value(externalLink),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Certification.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Certification(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      issuer: serializer.fromJson<String>(json['issuer']),
+      domain: serializer.fromJson<String>(json['domain']),
+      status: serializer.fromJson<String>(json['status']),
+      dateEarned: serializer.fromJson<DateTime?>(json['dateEarned']),
+      targetDate: serializer.fromJson<DateTime?>(json['targetDate']),
+      progressCurrent: serializer.fromJson<int>(json['progressCurrent']),
+      progressTotal: serializer.fromJson<int>(json['progressTotal']),
+      priority: serializer.fromJson<String?>(json['priority']),
+      externalLink: serializer.fromJson<String?>(json['externalLink']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'issuer': serializer.toJson<String>(issuer),
+      'domain': serializer.toJson<String>(domain),
+      'status': serializer.toJson<String>(status),
+      'dateEarned': serializer.toJson<DateTime?>(dateEarned),
+      'targetDate': serializer.toJson<DateTime?>(targetDate),
+      'progressCurrent': serializer.toJson<int>(progressCurrent),
+      'progressTotal': serializer.toJson<int>(progressTotal),
+      'priority': serializer.toJson<String?>(priority),
+      'externalLink': serializer.toJson<String?>(externalLink),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Certification copyWith({
+    int? id,
+    String? name,
+    String? issuer,
+    String? domain,
+    String? status,
+    Value<DateTime?> dateEarned = const Value.absent(),
+    Value<DateTime?> targetDate = const Value.absent(),
+    int? progressCurrent,
+    int? progressTotal,
+    Value<String?> priority = const Value.absent(),
+    Value<String?> externalLink = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Certification(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    issuer: issuer ?? this.issuer,
+    domain: domain ?? this.domain,
+    status: status ?? this.status,
+    dateEarned: dateEarned.present ? dateEarned.value : this.dateEarned,
+    targetDate: targetDate.present ? targetDate.value : this.targetDate,
+    progressCurrent: progressCurrent ?? this.progressCurrent,
+    progressTotal: progressTotal ?? this.progressTotal,
+    priority: priority.present ? priority.value : this.priority,
+    externalLink: externalLink.present ? externalLink.value : this.externalLink,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Certification copyWithCompanion(CertificationsCompanion data) {
+    return Certification(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      issuer: data.issuer.present ? data.issuer.value : this.issuer,
+      domain: data.domain.present ? data.domain.value : this.domain,
+      status: data.status.present ? data.status.value : this.status,
+      dateEarned: data.dateEarned.present
+          ? data.dateEarned.value
+          : this.dateEarned,
+      targetDate: data.targetDate.present
+          ? data.targetDate.value
+          : this.targetDate,
+      progressCurrent: data.progressCurrent.present
+          ? data.progressCurrent.value
+          : this.progressCurrent,
+      progressTotal: data.progressTotal.present
+          ? data.progressTotal.value
+          : this.progressTotal,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      externalLink: data.externalLink.present
+          ? data.externalLink.value
+          : this.externalLink,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Certification(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('issuer: $issuer, ')
+          ..write('domain: $domain, ')
+          ..write('status: $status, ')
+          ..write('dateEarned: $dateEarned, ')
+          ..write('targetDate: $targetDate, ')
+          ..write('progressCurrent: $progressCurrent, ')
+          ..write('progressTotal: $progressTotal, ')
+          ..write('priority: $priority, ')
+          ..write('externalLink: $externalLink, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    issuer,
+    domain,
+    status,
+    dateEarned,
+    targetDate,
+    progressCurrent,
+    progressTotal,
+    priority,
+    externalLink,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Certification &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.issuer == this.issuer &&
+          other.domain == this.domain &&
+          other.status == this.status &&
+          other.dateEarned == this.dateEarned &&
+          other.targetDate == this.targetDate &&
+          other.progressCurrent == this.progressCurrent &&
+          other.progressTotal == this.progressTotal &&
+          other.priority == this.priority &&
+          other.externalLink == this.externalLink &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CertificationsCompanion extends UpdateCompanion<Certification> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> issuer;
+  final Value<String> domain;
+  final Value<String> status;
+  final Value<DateTime?> dateEarned;
+  final Value<DateTime?> targetDate;
+  final Value<int> progressCurrent;
+  final Value<int> progressTotal;
+  final Value<String?> priority;
+  final Value<String?> externalLink;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const CertificationsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.issuer = const Value.absent(),
+    this.domain = const Value.absent(),
+    this.status = const Value.absent(),
+    this.dateEarned = const Value.absent(),
+    this.targetDate = const Value.absent(),
+    this.progressCurrent = const Value.absent(),
+    this.progressTotal = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.externalLink = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  CertificationsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String issuer,
+    required String domain,
+    required String status,
+    this.dateEarned = const Value.absent(),
+    this.targetDate = const Value.absent(),
+    this.progressCurrent = const Value.absent(),
+    this.progressTotal = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.externalLink = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) : name = Value(name),
+       issuer = Value(issuer),
+       domain = Value(domain),
+       status = Value(status),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Certification> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? issuer,
+    Expression<String>? domain,
+    Expression<String>? status,
+    Expression<DateTime>? dateEarned,
+    Expression<DateTime>? targetDate,
+    Expression<int>? progressCurrent,
+    Expression<int>? progressTotal,
+    Expression<String>? priority,
+    Expression<String>? externalLink,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (issuer != null) 'issuer': issuer,
+      if (domain != null) 'domain': domain,
+      if (status != null) 'status': status,
+      if (dateEarned != null) 'date_earned': dateEarned,
+      if (targetDate != null) 'target_date': targetDate,
+      if (progressCurrent != null) 'progress_current': progressCurrent,
+      if (progressTotal != null) 'progress_total': progressTotal,
+      if (priority != null) 'priority': priority,
+      if (externalLink != null) 'external_link': externalLink,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  CertificationsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String>? issuer,
+    Value<String>? domain,
+    Value<String>? status,
+    Value<DateTime?>? dateEarned,
+    Value<DateTime?>? targetDate,
+    Value<int>? progressCurrent,
+    Value<int>? progressTotal,
+    Value<String?>? priority,
+    Value<String?>? externalLink,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return CertificationsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      issuer: issuer ?? this.issuer,
+      domain: domain ?? this.domain,
+      status: status ?? this.status,
+      dateEarned: dateEarned ?? this.dateEarned,
+      targetDate: targetDate ?? this.targetDate,
+      progressCurrent: progressCurrent ?? this.progressCurrent,
+      progressTotal: progressTotal ?? this.progressTotal,
+      priority: priority ?? this.priority,
+      externalLink: externalLink ?? this.externalLink,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (issuer.present) {
+      map['issuer'] = Variable<String>(issuer.value);
+    }
+    if (domain.present) {
+      map['domain'] = Variable<String>(domain.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (dateEarned.present) {
+      map['date_earned'] = Variable<DateTime>(dateEarned.value);
+    }
+    if (targetDate.present) {
+      map['target_date'] = Variable<DateTime>(targetDate.value);
+    }
+    if (progressCurrent.present) {
+      map['progress_current'] = Variable<int>(progressCurrent.value);
+    }
+    if (progressTotal.present) {
+      map['progress_total'] = Variable<int>(progressTotal.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<String>(priority.value);
+    }
+    if (externalLink.present) {
+      map['external_link'] = Variable<String>(externalLink.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CertificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('issuer: $issuer, ')
+          ..write('domain: $domain, ')
+          ..write('status: $status, ')
+          ..write('dateEarned: $dateEarned, ')
+          ..write('targetDate: $targetDate, ')
+          ..write('progressCurrent: $progressCurrent, ')
+          ..write('progressTotal: $progressTotal, ')
+          ..write('priority: $priority, ')
+          ..write('externalLink: $externalLink, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4235,6 +4988,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OpportunitiesTable opportunities = $OpportunitiesTable(this);
   late final $WeeklyReviewsTable weeklyReviews = $WeeklyReviewsTable(this);
   late final $FocusSessionsTable focusSessions = $FocusSessionsTable(this);
+  late final $CertificationsTable certifications = $CertificationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4245,6 +4999,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     opportunities,
     weeklyReviews,
     focusSessions,
+    certifications,
   ];
 }
 
@@ -6595,6 +7350,364 @@ typedef $$FocusSessionsTableProcessedTableManager =
       FocusSession,
       PrefetchHooks Function({bool taskId})
     >;
+typedef $$CertificationsTableCreateCompanionBuilder =
+    CertificationsCompanion Function({
+      Value<int> id,
+      required String name,
+      required String issuer,
+      required String domain,
+      required String status,
+      Value<DateTime?> dateEarned,
+      Value<DateTime?> targetDate,
+      Value<int> progressCurrent,
+      Value<int> progressTotal,
+      Value<String?> priority,
+      Value<String?> externalLink,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+    });
+typedef $$CertificationsTableUpdateCompanionBuilder =
+    CertificationsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String> issuer,
+      Value<String> domain,
+      Value<String> status,
+      Value<DateTime?> dateEarned,
+      Value<DateTime?> targetDate,
+      Value<int> progressCurrent,
+      Value<int> progressTotal,
+      Value<String?> priority,
+      Value<String?> externalLink,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$CertificationsTableFilterComposer
+    extends Composer<_$AppDatabase, $CertificationsTable> {
+  $$CertificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get issuer => $composableBuilder(
+    column: $table.issuer,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get domain => $composableBuilder(
+    column: $table.domain,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateEarned => $composableBuilder(
+    column: $table.dateEarned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progressCurrent => $composableBuilder(
+    column: $table.progressCurrent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progressTotal => $composableBuilder(
+    column: $table.progressTotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get priority => $composableBuilder(
+    column: $table.priority,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get externalLink => $composableBuilder(
+    column: $table.externalLink,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CertificationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CertificationsTable> {
+  $$CertificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get issuer => $composableBuilder(
+    column: $table.issuer,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get domain => $composableBuilder(
+    column: $table.domain,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateEarned => $composableBuilder(
+    column: $table.dateEarned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progressCurrent => $composableBuilder(
+    column: $table.progressCurrent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progressTotal => $composableBuilder(
+    column: $table.progressTotal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get priority => $composableBuilder(
+    column: $table.priority,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get externalLink => $composableBuilder(
+    column: $table.externalLink,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CertificationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CertificationsTable> {
+  $$CertificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get issuer =>
+      $composableBuilder(column: $table.issuer, builder: (column) => column);
+
+  GeneratedColumn<String> get domain =>
+      $composableBuilder(column: $table.domain, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateEarned => $composableBuilder(
+    column: $table.dateEarned,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get progressCurrent => $composableBuilder(
+    column: $table.progressCurrent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get progressTotal => $composableBuilder(
+    column: $table.progressTotal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<String> get externalLink => $composableBuilder(
+    column: $table.externalLink,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$CertificationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CertificationsTable,
+          Certification,
+          $$CertificationsTableFilterComposer,
+          $$CertificationsTableOrderingComposer,
+          $$CertificationsTableAnnotationComposer,
+          $$CertificationsTableCreateCompanionBuilder,
+          $$CertificationsTableUpdateCompanionBuilder,
+          (
+            Certification,
+            BaseReferences<_$AppDatabase, $CertificationsTable, Certification>,
+          ),
+          Certification,
+          PrefetchHooks Function()
+        > {
+  $$CertificationsTableTableManager(
+    _$AppDatabase db,
+    $CertificationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CertificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CertificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CertificationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> issuer = const Value.absent(),
+                Value<String> domain = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> dateEarned = const Value.absent(),
+                Value<DateTime?> targetDate = const Value.absent(),
+                Value<int> progressCurrent = const Value.absent(),
+                Value<int> progressTotal = const Value.absent(),
+                Value<String?> priority = const Value.absent(),
+                Value<String?> externalLink = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => CertificationsCompanion(
+                id: id,
+                name: name,
+                issuer: issuer,
+                domain: domain,
+                status: status,
+                dateEarned: dateEarned,
+                targetDate: targetDate,
+                progressCurrent: progressCurrent,
+                progressTotal: progressTotal,
+                priority: priority,
+                externalLink: externalLink,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required String issuer,
+                required String domain,
+                required String status,
+                Value<DateTime?> dateEarned = const Value.absent(),
+                Value<DateTime?> targetDate = const Value.absent(),
+                Value<int> progressCurrent = const Value.absent(),
+                Value<int> progressTotal = const Value.absent(),
+                Value<String?> priority = const Value.absent(),
+                Value<String?> externalLink = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+              }) => CertificationsCompanion.insert(
+                id: id,
+                name: name,
+                issuer: issuer,
+                domain: domain,
+                status: status,
+                dateEarned: dateEarned,
+                targetDate: targetDate,
+                progressCurrent: progressCurrent,
+                progressTotal: progressTotal,
+                priority: priority,
+                externalLink: externalLink,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CertificationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CertificationsTable,
+      Certification,
+      $$CertificationsTableFilterComposer,
+      $$CertificationsTableOrderingComposer,
+      $$CertificationsTableAnnotationComposer,
+      $$CertificationsTableCreateCompanionBuilder,
+      $$CertificationsTableUpdateCompanionBuilder,
+      (
+        Certification,
+        BaseReferences<_$AppDatabase, $CertificationsTable, Certification>,
+      ),
+      Certification,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6609,4 +7722,6 @@ class $AppDatabaseManager {
       $$WeeklyReviewsTableTableManager(_db, _db.weeklyReviews);
   $$FocusSessionsTableTableManager get focusSessions =>
       $$FocusSessionsTableTableManager(_db, _db.focusSessions);
+  $$CertificationsTableTableManager get certifications =>
+      $$CertificationsTableTableManager(_db, _db.certifications);
 }
