@@ -4,6 +4,7 @@ import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 Future<void> showProfileNamePromptDialog(
   BuildContext context,
@@ -115,6 +116,11 @@ class _ProfileNameSetupGateState extends ConsumerState<ProfileNameSetupGate> {
 
   Future<void> _maybePrompt() async {
     if (_promptShown || !mounted) {
+      return;
+    }
+
+    final location = GoRouterState.of(context).uri.path;
+    if (location == '/daily-brief') {
       return;
     }
 

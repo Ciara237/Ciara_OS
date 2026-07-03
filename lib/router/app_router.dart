@@ -1,4 +1,6 @@
+import 'package:ciaraos/providers/daily_brief_gate_provider.dart';
 import 'package:ciaraos/providers/onboarding_provider.dart';
+import 'package:ciaraos/screens/secondary/daily_brief_screen.dart';
 import 'package:ciaraos/screens/primary/opportunities_screen.dart';
 import 'package:ciaraos/screens/primary/projects_screen.dart';
 import 'package:ciaraos/screens/primary/review_screen.dart';
@@ -25,35 +27,52 @@ import 'package:ciaraos/screens/secondary/project_detail_screen.dart';
 import 'package:ciaraos/screens/secondary/task_create_edit_screen.dart';
 import 'package:ciaraos/screens/secondary/task_detail_screen.dart';
 import 'package:ciaraos/widgets/navigation/primary_shell.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final onboarding = ref.watch(onboardingNotifierProvider);
+  final dailyBriefGate = ref.watch(dailyBriefGateProvider);
 
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: onboarding,
+    refreshListenable: Listenable.merge([onboarding, dailyBriefGate]),
     redirect: (context, state) {
-      if (!onboarding.isLoaded) {
+      if (!onboarding.isLoaded || !dailyBriefGate.isLoaded) {
         return null;
       }
 
       final location = state.matchedLocation;
       final onOnboarding = location == '/onboarding';
+      final onDailyBrief = location == '/daily-brief';
 
       if (!onboarding.isComplete && !onOnboarding) {
         return '/onboarding';
       }
       if (onboarding.isComplete && onOnboarding) {
-        return '/';
+        return dailyBriefGate.shouldShowToday() ? '/daily-brief' : '/';
       }
+
+      if (onboarding.isComplete) {
+        if (dailyBriefGate.shouldShowToday() && !onDailyBrief) {
+          return '/daily-brief';
+        }
+        if (!dailyBriefGate.shouldShowToday() && onDailyBrief) {
+          return '/';
+        }
+      }
+
       return null;
     },
     routes: [
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/daily-brief',
+        builder: (context, state) => const DailyBriefScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {
