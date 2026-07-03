@@ -47,6 +47,19 @@ class _AddResourceSheetState extends ConsumerState<AddResourceSheet> {
     super.dispose();
   }
 
+  void _onUrlChanged(String value) {
+    const driveHosts = [
+      'drive.google.com',
+      'docs.google.com',
+      'sheets.google.com',
+      'slides.google.com',
+    ];
+    final isDrive = driveHosts.any((host) => value.contains(host));
+    if (isDrive && _type != ResourceType.drive) {
+      setState(() => _type = ResourceType.drive);
+    }
+  }
+
   String? _validateUrl(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'URL is required';
@@ -166,6 +179,7 @@ class _AddResourceSheetState extends ConsumerState<AddResourceSheet> {
                           prefixIcon: Icon(Icons.link),
                         ),
                         keyboardType: TextInputType.url,
+                        onChanged: _onUrlChanged,
                         validator: _validateUrl,
                       ),
                       const SizedBox(height: AppSpacing.lg),
@@ -214,21 +228,31 @@ class _AddResourceSheetState extends ConsumerState<AddResourceSheet> {
                         runSpacing: AppSpacing.sm,
                         children: ResourceType.values.map((type) {
                           final selected = _type == type;
+                          final typeColor = resourceTypeColor(
+                            type,
+                            colorScheme,
+                          );
                           return FilterChip(
                             label: Text(resourceTypeLabel(type)),
                             selected: selected,
                             onSelected: (_) => setState(() => _type = type),
                             showCheckmark: false,
-                            labelStyle: AppTypography.labelSmall.copyWith(
+                            avatar: Icon(
+                              resourceTypeIcon(type),
+                              size: 16,
                               color: selected
-                                  ? colorScheme.primary
+                                  ? typeColor
                                   : colorScheme.onSurfaceVariant,
                             ),
-                            selectedColor:
-                                colorScheme.primary.withValues(alpha: 0.1),
+                            labelStyle: AppTypography.labelSmall.copyWith(
+                              color: selected
+                                  ? typeColor
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            selectedColor: typeColor.withValues(alpha: 0.1),
                             side: BorderSide(
                               color: selected
-                                  ? colorScheme.primary
+                                  ? typeColor
                                   : colorScheme.outlineVariant,
                             ),
                           );

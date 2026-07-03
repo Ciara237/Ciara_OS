@@ -2,6 +2,7 @@ import 'package:ciaraos/models/opportunity.dart';
 import 'package:ciaraos/providers/opportunity_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/utils/link_utils.dart';
 import 'package:ciaraos/utils/opportunity_utils.dart';
 import 'package:ciaraos/widgets/navigation/minimal_back_header.dart';
 import 'package:ciaraos/widgets/opportunities/opportunity_documents_card.dart';
@@ -416,7 +417,8 @@ class _OpportunityApplicationLinkCard extends StatelessWidget {
   final String link;
 
   Future<void> _openLink() async {
-    final uri = Uri.tryParse(link);
+    final normalized = LinkUtils.normalizeLink(link);
+    final uri = Uri.tryParse(normalized);
     if (uri == null) {
       return;
     }
@@ -446,7 +448,7 @@ class _OpportunityApplicationLinkCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'APPLICATION LINK',
+                  LinkUtils.linkLabel(link),
                   style: AppTypography.labelSmall.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -455,14 +457,14 @@ class _OpportunityApplicationLinkCard extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      Icons.link,
+                      LinkUtils.linkIcon(link),
                       size: AppSpacing.lg,
                       color: colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
-                        link,
+                        LinkUtils.displayLink(link),
                         style: AppTypography.bodyMedium.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           decoration: TextDecoration.none,

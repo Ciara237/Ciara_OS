@@ -330,6 +330,7 @@ class _ResourceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final domainColor = AppColors.domainColors[resource.domain]!;
+    final typeColor = resourceTypeColor(resource.type, colorScheme);
 
     return Material(
       color: Colors.transparent,
@@ -381,19 +382,30 @@ class _ResourceCard extends ConsumerWidget {
                               vertical: AppSpacing.xs,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(alpha: 0.1),
+                              color: typeColor.withValues(alpha: 0.1),
                               borderRadius:
                                   BorderRadius.circular(AppSpacing.radiusSm),
                               border: Border.all(
-                                color: colorScheme.primary.withValues(alpha: 0.2),
+                                color: typeColor.withValues(alpha: 0.2),
                               ),
                             ),
-                            child: Text(
-                              resourceTypeLabel(resource.type),
-                              style: AppTypography.labelSmall.copyWith(
-                                color: colorScheme.primary,
-                                fontSize: 10,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  resourceTypeIcon(resource.type),
+                                  size: 12,
+                                  color: typeColor,
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  resourceTypeLabel(resource.type),
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: typeColor,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const Spacer(),

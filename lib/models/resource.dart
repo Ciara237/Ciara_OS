@@ -1,6 +1,7 @@
 import 'package:ciaraos/database/app_database.dart' as db;
 import 'package:ciaraos/models/enums/domain.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 
 enum ResourceType {
   course,
@@ -8,6 +9,7 @@ enum ResourceType {
   tool,
   article,
   book,
+  drive,
 }
 
 class Resource {
@@ -88,5 +90,27 @@ String resourceTypeLabel(ResourceType type) {
     ResourceType.tool => 'TOOL',
     ResourceType.article => 'ARTICLE',
     ResourceType.book => 'BOOK',
+    ResourceType.drive => 'DRIVE',
+  };
+}
+
+IconData resourceTypeIcon(ResourceType type) {
+  return switch (type) {
+    ResourceType.course => Icons.school_outlined,
+    ResourceType.documentation => Icons.menu_book_outlined,
+    ResourceType.tool => Icons.build_outlined,
+    ResourceType.article => Icons.article_outlined,
+    ResourceType.book => Icons.auto_stories_outlined,
+    ResourceType.drive => Icons.folder_outlined,
+  };
+}
+
+/// Google Drive green — kept here rather than [AppColors].
+const driveResourceColor = Color(0xFF1FA463);
+
+Color resourceTypeColor(ResourceType type, ColorScheme colorScheme) {
+  return switch (type) {
+    ResourceType.drive => driveResourceColor,
+    _ => colorScheme.primary,
   };
 }

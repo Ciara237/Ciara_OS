@@ -5,6 +5,7 @@ import 'package:ciaraos/providers/opportunity_providers.dart';
 import 'package:ciaraos/theme/app_colors.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/utils/link_utils.dart';
 import 'package:ciaraos/utils/opportunity_utils.dart';
 import 'package:ciaraos/widgets/opportunities/opportunity_pipeline_stepper.dart';
 import 'package:flutter/material.dart';
@@ -130,7 +131,10 @@ class _OpportunityCreateEditScreenState
     final hasOrganizationError = organization.isEmpty;
     final hasLocationError = location.isEmpty;
     final hasTypeError = _selectedType == null;
-    final hasLinkError = link.isNotEmpty && !isValidApplicationLink(link);
+    final hasLinkError =
+        link.isNotEmpty &&
+        !LinkUtils.isEmailLink(link) &&
+        !isValidApplicationLink(link);
 
     if (hasTitleError ||
         hasOrganizationError ||
@@ -458,7 +462,7 @@ class _OpportunityCreateEditScreenState
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  const _FormFieldLabel(text: 'APPLICATION LINK'),
+                  const _FormFieldLabel(text: 'APPLICATION LINK / EMAIL'),
                   const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: _linkController,
@@ -469,7 +473,8 @@ class _OpportunityCreateEditScreenState
                     ),
                     decoration: _fieldDecoration(
                       context,
-                      hint: 'https://... or name@company.com',
+                      hint:
+                          'https://apply.company.com or hr@company.com',
                     ),
                     onChanged: (_) {
                       if (_linkError) {
