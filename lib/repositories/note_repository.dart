@@ -52,6 +52,13 @@ class NoteRepository {
     return row == null ? null : Note.fromRow(row);
   }
 
+  Future<Note?> getByNotionPageId(String notionPageId) async {
+    final query = _db.select(_db.notes)
+      ..where((row) => row.notionPageId.equals(notionPageId));
+    final row = await query.getSingleOrNull();
+    return row == null ? null : Note.fromRow(row);
+  }
+
   Future<int> insert(NotesCompanion companion) {
     return _db.into(_db.notes).insert(companion);
   }

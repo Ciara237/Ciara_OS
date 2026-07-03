@@ -1,3 +1,4 @@
+import 'package:ciaraos/providers/note_providers.dart';
 import 'package:ciaraos/providers/onboarding_provider.dart';
 import 'package:ciaraos/providers/theme_provider.dart';
 import 'package:ciaraos/services/data_management_service.dart';
@@ -8,6 +9,7 @@ import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/widgets/navigation/minimal_back_header.dart';
 import 'package:ciaraos/widgets/navigation/primary_drawer.dart';
+import 'package:ciaraos/widgets/notion/notion_setup_sheet.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -264,6 +266,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final themeMode = ref.watch(themeModeProvider);
+    final notionHealthAsync = ref.watch(notionHealthProvider);
 
     final openedFromStack = GoRouter.of(context).canPop();
 
@@ -376,46 +379,81 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: AppSpacing.reviewGap),
                 _SettingsSection(
                   label: 'INTEGRATIONS',
-                  child: _isEditingGithubUsername
-                      ? Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _githubUsernameController,
-                                autofocus: true,
-                                style: AppTypography.bodyMedium.copyWith(
-                                  color: colorScheme.onSurface,
+                  child: Column(
+                    children: [
+                      _isEditingGithubUsername
+                          ? Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _githubUsernameController,
+                                    autofocus: true,
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      color: colorScheme.onSurface,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      labelText: 'GitHub Username',
+                                      isDense: true,
+                                    ),
+                                    onSubmitted: (_) => _saveGithubUsername(),
+                                  ),
                                 ),
-                                decoration: const InputDecoration(
-                                  labelText: 'GitHub Username',
-                                  isDense: true,
+                                IconButton(
+                                  onPressed: _saveGithubUsername,
+                                  icon: Icon(
+                                    Icons.check,
+                                    color: colorScheme.primary,
+                                  ),
                                 ),
-                                onSubmitted: (_) => _saveGithubUsername(),
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: _saveGithubUsername,
-                              icon: Icon(Icons.check, color: colorScheme.primary),
-                            ),
-                            IconButton(
-                              onPressed: _cancelGithubUsernameEdit,
-                              icon: Icon(
-                                Icons.close,
+                                IconButton(
+                                  onPressed: _cancelGithubUsernameEdit,
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : _SettingsActionRow(
+                              title: 'GitHub Username',
+                              subtitle: _githubUsername,
+                              onTap: _startEditingGithubUsername,
+                              trailing: Icon(
+                                Icons.edit_outlined,
+                                size: AppSpacing.md,
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                          ],
-                        )
-                      : _SettingsActionRow(
-                          title: 'GitHub Username',
-                          subtitle: _githubUsername,
-                          onTap: _startEditingGithubUsername,
-                          trailing: Icon(
-                            Icons.edit_outlined,
-                            size: AppSpacing.md,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                      const SizedBox(height: AppSpacing.md),
+                      notionHealthAsync.when(
+                        loading: () => _SettingsActionRow(
+                          title: 'Notion Database',
+                          subtitle: 'Checking connection…',
+                          onTap: () => showNotionSetupSheet(context),
                         ),
+                        error: (_, _) => _SettingsActionRow(
+                          title: 'Notion Database',
+                          subtitle: 'Not configured',
+                          onTap: () => showNotionSetupSheet(context),
+                          trailing: _StatusDot(color: colorScheme.error),
+                        ),
+                        data: (health) {
+                          final connected =
+                              health.configured && health.databaseAccessible;
+                          return _SettingsActionRow(
+                            title: 'Notion Database',
+                            subtitle: connected ? 'Connected' : 'Not configured',
+                            onTap: () => showNotionSetupSheet(context),
+                            trailing: _StatusDot(
+                              color: connected
+                                  ? const Color(0xFF10B981)
+                                  : colorScheme.error,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.reviewGap),
                 _SettingsSection(
@@ -740,6 +778,21 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

@@ -5062,6 +5062,55 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _notionPageIdMeta = const VerificationMeta(
+    'notionPageId',
+  );
+  @override
+  late final GeneratedColumn<String> notionPageId = GeneratedColumn<String>(
+    'notion_page_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notionUrlMeta = const VerificationMeta(
+    'notionUrl',
+  );
+  @override
+  late final GeneratedColumn<String> notionUrl = GeneratedColumn<String>(
+    'notion_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notionLastEditedMeta = const VerificationMeta(
+    'notionLastEdited',
+  );
+  @override
+  late final GeneratedColumn<DateTime> notionLastEdited =
+      GeneratedColumn<DateTime>(
+        'notion_last_edited',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isNotionSyncedMeta = const VerificationMeta(
+    'isNotionSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isNotionSynced = GeneratedColumn<bool>(
+    'is_notion_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_notion_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5071,6 +5120,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     wordCount,
     createdAt,
     updatedAt,
+    notionPageId,
+    notionUrl,
+    notionLastEdited,
+    isNotionSynced,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5131,6 +5184,39 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('notion_page_id')) {
+      context.handle(
+        _notionPageIdMeta,
+        notionPageId.isAcceptableOrUnknown(
+          data['notion_page_id']!,
+          _notionPageIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notion_url')) {
+      context.handle(
+        _notionUrlMeta,
+        notionUrl.isAcceptableOrUnknown(data['notion_url']!, _notionUrlMeta),
+      );
+    }
+    if (data.containsKey('notion_last_edited')) {
+      context.handle(
+        _notionLastEditedMeta,
+        notionLastEdited.isAcceptableOrUnknown(
+          data['notion_last_edited']!,
+          _notionLastEditedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_notion_synced')) {
+      context.handle(
+        _isNotionSyncedMeta,
+        isNotionSynced.isAcceptableOrUnknown(
+          data['is_notion_synced']!,
+          _isNotionSyncedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -5168,6 +5254,22 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      notionPageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notion_page_id'],
+      ),
+      notionUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notion_url'],
+      ),
+      notionLastEdited: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}notion_last_edited'],
+      ),
+      isNotionSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_notion_synced'],
+      )!,
     );
   }
 
@@ -5185,6 +5287,10 @@ class Note extends DataClass implements Insertable<Note> {
   final int wordCount;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? notionPageId;
+  final String? notionUrl;
+  final DateTime? notionLastEdited;
+  final bool isNotionSynced;
   const Note({
     required this.id,
     required this.title,
@@ -5193,6 +5299,10 @@ class Note extends DataClass implements Insertable<Note> {
     required this.wordCount,
     required this.createdAt,
     required this.updatedAt,
+    this.notionPageId,
+    this.notionUrl,
+    this.notionLastEdited,
+    required this.isNotionSynced,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5204,6 +5314,16 @@ class Note extends DataClass implements Insertable<Note> {
     map['word_count'] = Variable<int>(wordCount);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || notionPageId != null) {
+      map['notion_page_id'] = Variable<String>(notionPageId);
+    }
+    if (!nullToAbsent || notionUrl != null) {
+      map['notion_url'] = Variable<String>(notionUrl);
+    }
+    if (!nullToAbsent || notionLastEdited != null) {
+      map['notion_last_edited'] = Variable<DateTime>(notionLastEdited);
+    }
+    map['is_notion_synced'] = Variable<bool>(isNotionSynced);
     return map;
   }
 
@@ -5216,6 +5336,16 @@ class Note extends DataClass implements Insertable<Note> {
       wordCount: Value(wordCount),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      notionPageId: notionPageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notionPageId),
+      notionUrl: notionUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notionUrl),
+      notionLastEdited: notionLastEdited == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notionLastEdited),
+      isNotionSynced: Value(isNotionSynced),
     );
   }
 
@@ -5232,6 +5362,12 @@ class Note extends DataClass implements Insertable<Note> {
       wordCount: serializer.fromJson<int>(json['wordCount']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      notionPageId: serializer.fromJson<String?>(json['notionPageId']),
+      notionUrl: serializer.fromJson<String?>(json['notionUrl']),
+      notionLastEdited: serializer.fromJson<DateTime?>(
+        json['notionLastEdited'],
+      ),
+      isNotionSynced: serializer.fromJson<bool>(json['isNotionSynced']),
     );
   }
   @override
@@ -5245,6 +5381,10 @@ class Note extends DataClass implements Insertable<Note> {
       'wordCount': serializer.toJson<int>(wordCount),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'notionPageId': serializer.toJson<String?>(notionPageId),
+      'notionUrl': serializer.toJson<String?>(notionUrl),
+      'notionLastEdited': serializer.toJson<DateTime?>(notionLastEdited),
+      'isNotionSynced': serializer.toJson<bool>(isNotionSynced),
     };
   }
 
@@ -5256,6 +5396,10 @@ class Note extends DataClass implements Insertable<Note> {
     int? wordCount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<String?> notionPageId = const Value.absent(),
+    Value<String?> notionUrl = const Value.absent(),
+    Value<DateTime?> notionLastEdited = const Value.absent(),
+    bool? isNotionSynced,
   }) => Note(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -5264,6 +5408,12 @@ class Note extends DataClass implements Insertable<Note> {
     wordCount: wordCount ?? this.wordCount,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    notionPageId: notionPageId.present ? notionPageId.value : this.notionPageId,
+    notionUrl: notionUrl.present ? notionUrl.value : this.notionUrl,
+    notionLastEdited: notionLastEdited.present
+        ? notionLastEdited.value
+        : this.notionLastEdited,
+    isNotionSynced: isNotionSynced ?? this.isNotionSynced,
   );
   Note copyWithCompanion(NotesCompanion data) {
     return Note(
@@ -5274,6 +5424,16 @@ class Note extends DataClass implements Insertable<Note> {
       wordCount: data.wordCount.present ? data.wordCount.value : this.wordCount,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      notionPageId: data.notionPageId.present
+          ? data.notionPageId.value
+          : this.notionPageId,
+      notionUrl: data.notionUrl.present ? data.notionUrl.value : this.notionUrl,
+      notionLastEdited: data.notionLastEdited.present
+          ? data.notionLastEdited.value
+          : this.notionLastEdited,
+      isNotionSynced: data.isNotionSynced.present
+          ? data.isNotionSynced.value
+          : this.isNotionSynced,
     );
   }
 
@@ -5286,14 +5446,29 @@ class Note extends DataClass implements Insertable<Note> {
           ..write('domain: $domain, ')
           ..write('wordCount: $wordCount, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('notionPageId: $notionPageId, ')
+          ..write('notionUrl: $notionUrl, ')
+          ..write('notionLastEdited: $notionLastEdited, ')
+          ..write('isNotionSynced: $isNotionSynced')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, title, content, domain, wordCount, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    content,
+    domain,
+    wordCount,
+    createdAt,
+    updatedAt,
+    notionPageId,
+    notionUrl,
+    notionLastEdited,
+    isNotionSynced,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5304,7 +5479,11 @@ class Note extends DataClass implements Insertable<Note> {
           other.domain == this.domain &&
           other.wordCount == this.wordCount &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.notionPageId == this.notionPageId &&
+          other.notionUrl == this.notionUrl &&
+          other.notionLastEdited == this.notionLastEdited &&
+          other.isNotionSynced == this.isNotionSynced);
 }
 
 class NotesCompanion extends UpdateCompanion<Note> {
@@ -5315,6 +5494,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
   final Value<int> wordCount;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<String?> notionPageId;
+  final Value<String?> notionUrl;
+  final Value<DateTime?> notionLastEdited;
+  final Value<bool> isNotionSynced;
   const NotesCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -5323,6 +5506,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.wordCount = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.notionPageId = const Value.absent(),
+    this.notionUrl = const Value.absent(),
+    this.notionLastEdited = const Value.absent(),
+    this.isNotionSynced = const Value.absent(),
   });
   NotesCompanion.insert({
     this.id = const Value.absent(),
@@ -5332,6 +5519,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.wordCount = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.notionPageId = const Value.absent(),
+    this.notionUrl = const Value.absent(),
+    this.notionLastEdited = const Value.absent(),
+    this.isNotionSynced = const Value.absent(),
   }) : title = Value(title),
        domain = Value(domain),
        createdAt = Value(createdAt),
@@ -5344,6 +5535,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Expression<int>? wordCount,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<String>? notionPageId,
+    Expression<String>? notionUrl,
+    Expression<DateTime>? notionLastEdited,
+    Expression<bool>? isNotionSynced,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -5353,6 +5548,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
       if (wordCount != null) 'word_count': wordCount,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (notionPageId != null) 'notion_page_id': notionPageId,
+      if (notionUrl != null) 'notion_url': notionUrl,
+      if (notionLastEdited != null) 'notion_last_edited': notionLastEdited,
+      if (isNotionSynced != null) 'is_notion_synced': isNotionSynced,
     });
   }
 
@@ -5364,6 +5563,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Value<int>? wordCount,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<String?>? notionPageId,
+    Value<String?>? notionUrl,
+    Value<DateTime?>? notionLastEdited,
+    Value<bool>? isNotionSynced,
   }) {
     return NotesCompanion(
       id: id ?? this.id,
@@ -5373,6 +5576,10 @@ class NotesCompanion extends UpdateCompanion<Note> {
       wordCount: wordCount ?? this.wordCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      notionPageId: notionPageId ?? this.notionPageId,
+      notionUrl: notionUrl ?? this.notionUrl,
+      notionLastEdited: notionLastEdited ?? this.notionLastEdited,
+      isNotionSynced: isNotionSynced ?? this.isNotionSynced,
     );
   }
 
@@ -5400,6 +5607,18 @@ class NotesCompanion extends UpdateCompanion<Note> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (notionPageId.present) {
+      map['notion_page_id'] = Variable<String>(notionPageId.value);
+    }
+    if (notionUrl.present) {
+      map['notion_url'] = Variable<String>(notionUrl.value);
+    }
+    if (notionLastEdited.present) {
+      map['notion_last_edited'] = Variable<DateTime>(notionLastEdited.value);
+    }
+    if (isNotionSynced.present) {
+      map['is_notion_synced'] = Variable<bool>(isNotionSynced.value);
+    }
     return map;
   }
 
@@ -5412,7 +5631,11 @@ class NotesCompanion extends UpdateCompanion<Note> {
           ..write('domain: $domain, ')
           ..write('wordCount: $wordCount, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('notionPageId: $notionPageId, ')
+          ..write('notionUrl: $notionUrl, ')
+          ..write('notionLastEdited: $notionLastEdited, ')
+          ..write('isNotionSynced: $isNotionSynced')
           ..write(')'))
         .toString();
   }
@@ -8659,6 +8882,10 @@ typedef $$NotesTableCreateCompanionBuilder =
       Value<int> wordCount,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<String?> notionPageId,
+      Value<String?> notionUrl,
+      Value<DateTime?> notionLastEdited,
+      Value<bool> isNotionSynced,
     });
 typedef $$NotesTableUpdateCompanionBuilder =
     NotesCompanion Function({
@@ -8669,6 +8896,10 @@ typedef $$NotesTableUpdateCompanionBuilder =
       Value<int> wordCount,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<String?> notionPageId,
+      Value<String?> notionUrl,
+      Value<DateTime?> notionLastEdited,
+      Value<bool> isNotionSynced,
     });
 
 class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
@@ -8711,6 +8942,26 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notionPageId => $composableBuilder(
+    column: $table.notionPageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notionUrl => $composableBuilder(
+    column: $table.notionUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get notionLastEdited => $composableBuilder(
+    column: $table.notionLastEdited,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isNotionSynced => $composableBuilder(
+    column: $table.isNotionSynced,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8758,6 +9009,26 @@ class $$NotesTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get notionPageId => $composableBuilder(
+    column: $table.notionPageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notionUrl => $composableBuilder(
+    column: $table.notionUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get notionLastEdited => $composableBuilder(
+    column: $table.notionLastEdited,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isNotionSynced => $composableBuilder(
+    column: $table.isNotionSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$NotesTableAnnotationComposer
@@ -8789,6 +9060,24 @@ class $$NotesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get notionPageId => $composableBuilder(
+    column: $table.notionPageId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notionUrl =>
+      $composableBuilder(column: $table.notionUrl, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get notionLastEdited => $composableBuilder(
+    column: $table.notionLastEdited,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isNotionSynced => $composableBuilder(
+    column: $table.isNotionSynced,
+    builder: (column) => column,
+  );
 }
 
 class $$NotesTableTableManager
@@ -8826,6 +9115,10 @@ class $$NotesTableTableManager
                 Value<int> wordCount = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> notionPageId = const Value.absent(),
+                Value<String?> notionUrl = const Value.absent(),
+                Value<DateTime?> notionLastEdited = const Value.absent(),
+                Value<bool> isNotionSynced = const Value.absent(),
               }) => NotesCompanion(
                 id: id,
                 title: title,
@@ -8834,6 +9127,10 @@ class $$NotesTableTableManager
                 wordCount: wordCount,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                notionPageId: notionPageId,
+                notionUrl: notionUrl,
+                notionLastEdited: notionLastEdited,
+                isNotionSynced: isNotionSynced,
               ),
           createCompanionCallback:
               ({
@@ -8844,6 +9141,10 @@ class $$NotesTableTableManager
                 Value<int> wordCount = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<String?> notionPageId = const Value.absent(),
+                Value<String?> notionUrl = const Value.absent(),
+                Value<DateTime?> notionLastEdited = const Value.absent(),
+                Value<bool> isNotionSynced = const Value.absent(),
               }) => NotesCompanion.insert(
                 id: id,
                 title: title,
@@ -8852,6 +9153,10 @@ class $$NotesTableTableManager
                 wordCount: wordCount,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                notionPageId: notionPageId,
+                notionUrl: notionUrl,
+                notionLastEdited: notionLastEdited,
+                isNotionSynced: isNotionSynced,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

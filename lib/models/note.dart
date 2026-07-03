@@ -11,6 +11,10 @@ class Note {
     required this.wordCount,
     required this.createdAt,
     required this.updatedAt,
+    this.notionPageId,
+    this.notionUrl,
+    this.notionLastEdited,
+    this.isNotionSynced = false,
   });
 
   final int id;
@@ -20,6 +24,10 @@ class Note {
   final int wordCount;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? notionPageId;
+  final String? notionUrl;
+  final DateTime? notionLastEdited;
+  final bool isNotionSynced;
 
   factory Note.fromRow(db.Note row) {
     return Note(
@@ -30,6 +38,10 @@ class Note {
       wordCount: row.wordCount,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      notionPageId: row.notionPageId,
+      notionUrl: row.notionUrl,
+      notionLastEdited: row.notionLastEdited,
+      isNotionSynced: row.isNotionSynced,
     );
   }
 
@@ -42,6 +54,10 @@ class Note {
       wordCount: Value(wordCount),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      notionPageId: Value(notionPageId),
+      notionUrl: Value(notionUrl),
+      notionLastEdited: Value(notionLastEdited),
+      isNotionSynced: Value(isNotionSynced),
     );
   }
 
@@ -53,6 +69,10 @@ class Note {
     int? wordCount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? notionPageId,
+    String? notionUrl,
+    DateTime? notionLastEdited,
+    bool? isNotionSynced,
   }) {
     return Note(
       id: id ?? this.id,
@@ -62,6 +82,10 @@ class Note {
       wordCount: wordCount ?? this.wordCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      notionPageId: notionPageId ?? this.notionPageId,
+      notionUrl: notionUrl ?? this.notionUrl,
+      notionLastEdited: notionLastEdited ?? this.notionLastEdited,
+      isNotionSynced: isNotionSynced ?? this.isNotionSynced,
     );
   }
 }

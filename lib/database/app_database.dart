@@ -45,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -115,6 +115,12 @@ class AppDatabase extends _$AppDatabase {
           if (from < 8) {
             await migrator.createTable(notes);
             await migrator.createTable(resources);
+          }
+          if (from < 9) {
+            await migrator.addColumn(notes, notes.notionPageId);
+            await migrator.addColumn(notes, notes.notionUrl);
+            await migrator.addColumn(notes, notes.notionLastEdited);
+            await migrator.addColumn(notes, notes.isNotionSynced);
           }
         },
       );

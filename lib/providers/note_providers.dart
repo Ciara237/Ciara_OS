@@ -1,12 +1,36 @@
 import 'package:ciaraos/models/enums/domain.dart';
 import 'package:ciaraos/models/note.dart';
+import 'package:ciaraos/models/notion_page.dart';
 import 'package:ciaraos/providers/database_provider.dart';
 import 'package:ciaraos/repositories/note_repository.dart';
+import 'package:ciaraos/services/notion_api_client.dart';
+import 'package:ciaraos/services/notion_sync_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 final noteRepositoryProvider = Provider<NoteRepository>((ref) {
   return NoteRepository(ref.watch(databaseProvider));
+});
+
+final notionSyncServiceProvider = Provider<NotionSyncService>((ref) {
+  return NotionSyncService(
+    ref.read(noteRepositoryProvider),
+    NotionApiClient(),
+  );
+});
+
+final notionHealthProvider = FutureProvider<NotionHealthStatus>((ref) {
+  return NotionApiClient().checkHealth();
+});
+
+final notionLastSyncedAtProvider = FutureProvider<DateTime?>((ref) {
+  return loadNotionLastSyncedAt();
+});
+
+final notionSyncedNotesProvider = Provider<AsyncValue<List<Note>>>((ref) {
+  return ref.watch(allNotesProvider).whenData(
+        (notes) => notes.where((note) => note.isNotionSynced).toList(),
+      );
 });
 
 final allNotesProvider = StreamProvider<List<Note>>((ref) {

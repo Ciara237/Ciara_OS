@@ -8,6 +8,7 @@ import 'package:ciaraos/utils/domain_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class NoteEditorScreen extends ConsumerStatefulWidget {
   const NoteEditorScreen({super.key, this.noteId});
@@ -28,6 +29,19 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   Note? _existing;
 
   bool get _isEditing => widget.noteId != null;
+
+  bool get _isReadOnly => _existing?.isNotionSynced ?? false;
+
+  Future<void> _openInNotion() async {
+    final url = _existing?.notionUrl;
+    if (url == null || url.isEmpty) {
+      return;
+    }
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   int? get _parsedId {
     final id = widget.noteId;
@@ -179,6 +193,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     }
 
     final words = countWords(_contentController.text);
+    final isReadOnly = _isReadOnly;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -203,23 +218,26 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    _isEditing ? 'EDIT NOTE' : 'NEW NOTE',
+                    isReadOnly
+                        ? 'NOTION NOTE'
+                        : (_isEditing ? 'EDIT NOTE' : 'NEW NOTE'),
                     style: AppTypography.labelLarge.copyWith(
                       color: colorScheme.onSurface,
                       letterSpacing: 1.2,
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: _saving ? null : _save,
-                  child: Text(
-                    'SAVE',
-                    style: AppTypography.labelLarge.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                if (!isReadOnly)
+                  TextButton(
+                    onPressed: _saving ? null : _save,
+                    child: Text(
+                      'SAVE',
+                      style: AppTypography.labelLarge.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -229,34 +247,58 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
-                    children: Domain.values.map((domain) {
-                      final selected = _domain == domain;
-                      final domainColor = AppColors.domainColors[domain]!;
-                      return FilterChip(
-                        label: Text(domainLabel(domain)),
-                        selected: selected,
-                        onSelected: (_) => setState(() => _domain = domain),
-                        selectedColor: domainColor.withValues(alpha: 0.15),
-                        checkmarkColor: domainColor,
-                        labelStyle: AppTypography.labelSmall.copyWith(
-                          color: selected
-                              ? domainColor
-                              : colorScheme.onSurfaceVariant,
+                  if (!isReadOnly)
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: Domain.values.map((domain) {
+                        final selected = _domain == domain;
+                        final domainColor = AppColors.domainColors[domain]!;
+                        return FilterChip(
+                          label: Text(domainLabel(domain)),
+                          selected: selected,
+                          onSelected: (_) => setState(() => _domain = domain),
+                          selectedColor: domainColor.withValues(alpha: 0.15),
+                          checkmarkColor: domainColor,
+                          labelStyle: AppTypography.labelSmall.copyWith(
+                            color: selected
+                                ? domainColor
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          side: BorderSide(
+                            color: selected
+                                ? domainColor
+                                : colorScheme.outlineVariant,
+                          ),
+                        );
+                      }).toList(),
+                    )
+                  else
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
                         ),
-                        side: BorderSide(
-                          color: selected
-                              ? domainColor
-                              : colorScheme.outlineVariant,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHigh,
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusSm),
                         ),
-                      );
-                    }).toList(),
-                  ),
+                        child: Text(
+                          'NOTION',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: AppSpacing.lg),
                   TextField(
                     controller: _titleController,
+                    readOnly: isReadOnly,
                     style: AppTypography.headingMedium.copyWith(
                       color: colorScheme.onSurface,
                     ),
@@ -274,7 +316,8 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   Expanded(
                     child: TextField(
                       controller: _contentController,
-                      onChanged: (_) => setState(() {}),
+                      readOnly: isReadOnly,
+                      onChanged: isReadOnly ? null : (_) => setState(() {}),
                       maxLines: null,
                       expands: true,
                       textAlignVertical: TextAlignVertical.top,
@@ -292,7 +335,14 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ),
                     ),
                   ),
-                  if (_isEditing) ...[
+                  if (isReadOnly) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    OutlinedButton.icon(
+                      onPressed: _openInNotion,
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Synced from Notion · Open in Notion →'),
+                    ),
+                  ] else if (_isEditing) ...[
                     const SizedBox(height: AppSpacing.lg),
                     OutlinedButton(
                       onPressed: _delete,

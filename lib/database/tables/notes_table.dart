@@ -14,4 +14,13 @@ class Notes extends Table {
   DateTimeColumn get createdAt => dateTime()();
 
   DateTimeColumn get updatedAt => dateTime()();
+
+  TextColumn get notionPageId => text().nullable()();
+
+  TextColumn get notionUrl => text().nullable()();
+
+  DateTimeColumn get notionLastEdited => dateTime().nullable()();
+
+  BoolColumn get isNotionSynced =>
+      boolean().withDefault(const Constant(false))();
 }
