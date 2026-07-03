@@ -1,5 +1,6 @@
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/widgets/today/calendar_strip.dart';
 import 'package:ciaraos/widgets/today/executive_brief_card.dart';
 import 'package:ciaraos/widgets/today/today_action_row.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
@@ -43,6 +44,8 @@ class TodayScreen extends ConsumerWidget {
                       const TodayScreenLabel(),
                       const SizedBox(height: AppSpacing.lg),
                       const TodayActionRow(),
+                      const SizedBox(height: AppSpacing.lg),
+                      const CalendarStrip(),
                       const SizedBox(height: AppSpacing.lg),
                       const ExecutiveBriefCard(),
                       const SizedBox(height: AppSpacing.lg),
