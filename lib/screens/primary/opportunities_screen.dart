@@ -55,108 +55,113 @@ class _OpportunitiesScreenState extends ConsumerState<OpportunitiesScreen> {
     final groupedOpportunities = ref.watch(groupedOpportunitiesProvider);
     final activeCount = ref.watch(activeOpportunitiesCountProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openNewOpportunity,
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        child: const Icon(Icons.add),
-      ),
-      body: ColoredBox(
-        color: colorScheme.surface,
-        child: Column(
-          children: [
-            const TodayHeader(),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.lg,
-                  AppSpacing.lg,
-                  AppSpacing.xxl + AppSpacing.xl,
-                ),
-                children: [
-                  _OpportunitiesScreenLabel(
-                    activeCount: activeCount,
-                    stageCount: groupedOpportunities.value?.length ?? 0,
+    return Stack(
+      children: [
+        ColoredBox(
+          color: colorScheme.surface,
+          child: Column(
+            children: [
+              const TodayHeader(),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.xxl + AppSpacing.xl,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  groupedOpportunities.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.all(AppSpacing.lg),
-                      child: Center(child: CircularProgressIndicator()),
+                  children: [
+                    _OpportunitiesScreenLabel(
+                      activeCount: activeCount,
+                      stageCount: groupedOpportunities.value?.length ?? 0,
                     ),
-                    error: (error, _) => EmptyState(
-                      message: 'Could not load opportunities.',
-                      actionLabel: 'RETRY',
-                      onAction: () => ref.invalidate(allOpportunitiesProvider),
-                    ),
-                    data: (groups) {
-                      if (groups.isEmpty) {
-                        return EmptyState(
-                          style: EmptyStateStyle.pipeline,
-                          title: 'Pipeline Clear',
-                          message:
-                              'Your opportunity pipeline is currently a clean '
-                              'slate. Ready to track the next big lead or '
-                              'application?',
-                          actionLabel: 'LOG FIRST LEAD',
-                          actionIcon: Icons.add,
-                          onAction: _openNewOpportunity,
-                          footer: const PipelineEmptyStateFooter(),
-                        );
-                      }
+                    const SizedBox(height: AppSpacing.lg),
+                    groupedOpportunities.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(AppSpacing.lg),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (error, _) => EmptyState(
+                        message: 'Could not load opportunities.',
+                        actionLabel: 'RETRY',
+                        onAction: () => ref.invalidate(allOpportunitiesProvider),
+                      ),
+                      data: (groups) {
+                        if (groups.isEmpty) {
+                          return EmptyState(
+                            style: EmptyStateStyle.pipeline,
+                            title: 'Pipeline Clear',
+                            message:
+                                'Your opportunity pipeline is currently a clean '
+                                'slate. Ready to track the next big lead or '
+                                'application?',
+                            actionLabel: 'LOG FIRST LEAD',
+                            actionIcon: Icons.add,
+                            onAction: _openNewOpportunity,
+                            footer: const PipelineEmptyStateFooter(),
+                          );
+                        }
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (final status in OpportunityStatus.values)
-                            if (groups.containsKey(status)) ...[
-                              OpportunityGroupHeader(
-                                status: status,
-                                count: groups[status]!.length,
-                                isExpanded: _isGroupExpanded(status),
-                                isCollapsible: status ==
-                                        OpportunityStatus.rejected ||
-                                    status == OpportunityStatus.closed,
-                                onToggle: () => _toggleGroup(status),
-                              ),
-                              if (_isGroupExpanded(status))
-                                Column(
-                                  children: [
-                                    for (var i = 0;
-                                        i < groups[status]!.length;
-                                        i++) ...[
-                                      if (i > 0)
-                                        const SizedBox(height: AppSpacing.md),
-                                      OpportunityCard(
-                                        opportunity: groups[status]![i],
-                                        onTap: () => context.push(
-                                          '/opportunities/${groups[status]![i].id}',
-                                        ),
-                                        onLongPress: () =>
-                                            showOpportunityQuickActionsSheet(
-                                          context: context,
-                                          ref: ref,
-                                          opportunity: groups[status]![i],
-                                        ),
-                                      ),
-                                    ],
-                                  ],
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (final status in OpportunityStatus.values)
+                              if (groups.containsKey(status)) ...[
+                                OpportunityGroupHeader(
+                                  status: status,
+                                  count: groups[status]!.length,
+                                  isExpanded: _isGroupExpanded(status),
+                                  isCollapsible: status ==
+                                          OpportunityStatus.rejected ||
+                                      status == OpportunityStatus.closed,
+                                  onToggle: () => _toggleGroup(status),
                                 ),
-                              const SizedBox(height: AppSpacing.lg),
-                            ],
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                                if (_isGroupExpanded(status))
+                                  Column(
+                                    children: [
+                                      for (var i = 0;
+                                          i < groups[status]!.length;
+                                          i++) ...[
+                                        if (i > 0)
+                                          const SizedBox(height: AppSpacing.md),
+                                        OpportunityCard(
+                                          opportunity: groups[status]![i],
+                                          onTap: () => context.push(
+                                            '/opportunities/${groups[status]![i].id}',
+                                          ),
+                                          onLongPress: () =>
+                                              showOpportunityQuickActionsSheet(
+                                            context: context,
+                                            ref: ref,
+                                            opportunity: groups[status]![i],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                const SizedBox(height: AppSpacing.lg),
+                              ],
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        Positioned(
+          right: AppSpacing.lg,
+          bottom: AppSpacing.lg,
+          child: FloatingActionButton(
+            onPressed: _openNewOpportunity,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      ],
     );
   }
 }

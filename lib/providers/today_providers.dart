@@ -27,6 +27,7 @@ final filteredTodayTasksProvider = Provider<AsyncValue<List<Task>>>((ref) {
       domain: domain,
       deadline: deadline,
       status: status,
+      excludeDone: true,
     ),
   );
 });

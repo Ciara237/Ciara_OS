@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ciaraos/models/security_activity.dart';
 import 'package:ciaraos/services/ai_service.dart';
+import 'package:ciaraos/services/security_cache.dart';
 import 'package:http/http.dart' as http;
 
 enum SecurityEndpointAvailability {
@@ -87,9 +88,11 @@ class SecurityService {
           .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
-        return HackTheBoxProfile.fromJson(
+        final profile = HackTheBoxProfile.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>,
         );
+        await SecurityCache.saveHackTheBox(profile);
+        return profile;
       }
       return null;
     } catch (_) {
@@ -104,9 +107,11 @@ class SecurityService {
           .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
-        return HackerOneProfile.fromJson(
+        final profile = HackerOneProfile.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>,
         );
+        await SecurityCache.saveHackerOne(profile);
+        return profile;
       }
       return null;
     } catch (_) {

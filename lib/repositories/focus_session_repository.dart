@@ -52,6 +52,10 @@ class FocusSessionRepository {
     return rows.map(FocusSessionRecord.fromRow).toList();
   }
 
+  Future<List<FocusSessionRecord>> getSessionsForWeek(DateTime weekStart) {
+    return getCompletedSessionsForWeek(weekStart);
+  }
+
   Future<List<FocusSessionRecord>> getCompletedSessionsForWeek(
     DateTime weekMonday,
   ) async {

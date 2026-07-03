@@ -1,9 +1,13 @@
+import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/providers/pdf_export_provider.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
+import 'package:ciaraos/widgets/export/pdf_export_sheets.dart';
 import 'package:ciaraos/widgets/tasks/task_filter_sheets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class TasksFilterBar extends ConsumerWidget {
   const TasksFilterBar({super.key});
@@ -38,7 +42,44 @@ class TasksFilterBar extends ConsumerWidget {
             isActive: status != null,
             onTap: () => showStatusFilterSheet(context, ref),
           ),
+          const SizedBox(width: AppSpacing.sm),
+          IconButton(
+            tooltip: 'Export tasks',
+            onPressed: () => _showTasksExportSheet(context, ref),
+            icon: Icon(
+              Icons.picture_as_pdf_outlined,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showTasksExportSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => TasksPdfExportSheet(
+        onExport: () async {
+          try {
+            final tasks =
+                ref.read(filteredTasksProvider).asData?.value ?? const <Task>[];
+            final periodLabel =
+                DateFormat('yyyy-MM-dd').format(DateTime.now());
+            await ref.read(pdfExportServiceProvider).exportTasksBacklog(
+                  tasks: tasks,
+                  periodLabel: periodLabel,
+                );
+          } catch (error) {
+            if (sheetContext.mounted) {
+              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                SnackBar(content: Text('Export failed: $error')),
+              );
+            }
+            rethrow;
+          }
+        },
       ),
     );
   }

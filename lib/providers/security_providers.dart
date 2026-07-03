@@ -1,4 +1,5 @@
 import 'package:ciaraos/models/security_activity.dart';
+import 'package:ciaraos/services/security_cache.dart';
 import 'package:ciaraos/services/security_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -26,20 +27,55 @@ final hackerOneProvider =
 class HackTheBoxNotifier extends Notifier<AsyncValue<HackTheBoxProfile?>> {
   @override
   AsyncValue<HackTheBoxProfile?> build() {
+    Future.microtask(_restoreFromCache);
     return const AsyncValue.data(null);
   }
 
   DateTime? _lastSynced;
+  bool _cacheLoaded = false;
+
+  Future<void> _restoreFromCache() async {
+    if (_cacheLoaded) {
+      return;
+    }
+    _cacheLoaded = true;
+
+    final cached = await SecurityCache.loadHackTheBox();
+    if (cached == null) {
+      return;
+    }
+
+    _lastSynced = cached.syncedAt;
+    if (state.value == null) {
+      state = AsyncValue.data(cached);
+    }
+  }
 
   Future<void> sync() async {
-    state = const AsyncValue.loading();
+    final previous = state.value;
+    if (previous == null) {
+      state = const AsyncValue.loading();
+    }
+
     try {
       final profile =
           await ref.read(securityServiceProvider).fetchHackTheBox();
-      _lastSynced = DateTime.now();
-      state = AsyncValue.data(profile);
+      if (profile != null) {
+        _lastSynced = DateTime.now();
+        state = AsyncValue.data(profile);
+        return;
+      }
+      if (previous != null) {
+        state = AsyncValue.data(previous);
+      } else {
+        state = const AsyncValue.data(null);
+      }
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      if (previous != null) {
+        state = AsyncValue.data(previous);
+      } else {
+        state = AsyncValue.error(error, stackTrace);
+      }
     }
   }
 
@@ -55,20 +91,55 @@ class HackTheBoxNotifier extends Notifier<AsyncValue<HackTheBoxProfile?>> {
 class HackerOneNotifier extends Notifier<AsyncValue<HackerOneProfile?>> {
   @override
   AsyncValue<HackerOneProfile?> build() {
+    Future.microtask(_restoreFromCache);
     return const AsyncValue.data(null);
   }
 
   DateTime? _lastSynced;
+  bool _cacheLoaded = false;
+
+  Future<void> _restoreFromCache() async {
+    if (_cacheLoaded) {
+      return;
+    }
+    _cacheLoaded = true;
+
+    final cached = await SecurityCache.loadHackerOne();
+    if (cached == null) {
+      return;
+    }
+
+    _lastSynced = cached.syncedAt;
+    if (state.value == null) {
+      state = AsyncValue.data(cached);
+    }
+  }
 
   Future<void> sync() async {
-    state = const AsyncValue.loading();
+    final previous = state.value;
+    if (previous == null) {
+      state = const AsyncValue.loading();
+    }
+
     try {
       final profile =
           await ref.read(securityServiceProvider).fetchHackerOne();
-      _lastSynced = DateTime.now();
-      state = AsyncValue.data(profile);
+      if (profile != null) {
+        _lastSynced = DateTime.now();
+        state = AsyncValue.data(profile);
+        return;
+      }
+      if (previous != null) {
+        state = AsyncValue.data(previous);
+      } else {
+        state = const AsyncValue.data(null);
+      }
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      if (previous != null) {
+        state = AsyncValue.data(previous);
+      } else {
+        state = AsyncValue.error(error, stackTrace);
+      }
     }
   }
 

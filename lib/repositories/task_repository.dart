@@ -18,7 +18,9 @@ class TaskRepository {
 
   Stream<List<Task>> watchToday() {
     final query = _db.select(_db.tasks)
-      ..where((task) => task.today.equals(true))
+      ..where(
+        (task) => task.today.equals(true) & task.status.isNotValue('done'),
+      )
       ..orderBy([(task) => OrderingTerm.desc(task.updatedAt)]);
 
     return query.watch().map(

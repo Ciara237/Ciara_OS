@@ -1,12 +1,16 @@
 import 'package:ciaraos/models/enums/domain.dart';
 import 'package:ciaraos/models/weekly_debrief.dart';
 import 'package:ciaraos/models/weekly_review.dart';
+import 'package:ciaraos/providers/focus_session_repository_provider.dart';
+import 'package:ciaraos/providers/pdf_export_provider.dart';
+import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/providers/weekly_debrief_providers.dart';
 import 'package:ciaraos/providers/weekly_review_providers.dart';
 import 'package:ciaraos/services/daily_activity_stats.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/review_stats_utils.dart';
+import 'package:ciaraos/widgets/export/pdf_export_sheets.dart';
 import 'package:ciaraos/widgets/review/next_actions_checklist.dart';
 import 'package:ciaraos/widgets/review/reflection_card.dart';
 import 'package:ciaraos/widgets/review/review_card.dart';
@@ -97,9 +101,90 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   void _exportLogs() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export coming in a future update.')),
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => ReviewPdfExportSheet(
+        onExportWeeklyReview: _exportWeeklyReviewPdf,
+        onExportTaskBreakdown: _exportTaskBreakdownPdf,
+      ),
     );
+  }
+
+  Future<WeeklyReview> _buildReviewForExport() async {
+    final debrief = ref.read(weeklyDebriefProvider).value;
+    if (debrief == null) {
+      throw StateError('Execution data is not loaded yet.');
+    }
+
+    final repository = ref.read(weeklyReviewRepositoryProvider);
+    final weekOf = mondayOfWeek(DateTime.now());
+    final existing = await repository.getByWeek(weekOf);
+    final now = DateTime.now();
+
+    String? trimmedOrNull(TextEditingController controller) {
+      final value = controller.text.trim();
+      return value.isEmpty ? null : value;
+    }
+
+    return WeeklyReview(
+      id: existing?.id ?? 0,
+      weekOf: weekOf,
+      whatWorked: trimmedOrNull(_whatWorkedController),
+      whatSlowedDown: trimmedOrNull(_whatSlowedController),
+      improvementForNextWeek: trimmedOrNull(_improvementController),
+      nextActions: _nextActions.map((item) => item.text).toList(),
+      startedRate: debrief.metrics.taskCompletionRate,
+      totalTasks: debrief.metrics.tasksInScope,
+      startedTasks: debrief.metrics.tasksCompleted,
+      focusScore: debrief.executionScore,
+      executionScore: debrief.executionScore,
+      weeklyNarrative: debrief.narrative,
+      insights: debrief.insights,
+      locked: existing?.locked ?? false,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    );
+  }
+
+  Future<void> _exportWeeklyReviewPdf() async {
+    try {
+      final review = await _buildReviewForExport();
+      final tasks = await ref.read(weekTasksProvider(review.weekOf).future);
+      final sessions = await ref
+          .read(focusSessionRepositoryProvider)
+          .getSessionsForWeek(review.weekOf);
+      await ref.read(pdfExportServiceProvider).exportWeeklyReview(
+            review: review,
+            tasksThisWeek: tasks,
+            sessionsThisWeek: sessions,
+          );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _exportTaskBreakdownPdf() async {
+    try {
+      final weekOf = mondayOfWeek(DateTime.now());
+      final tasks = await ref.read(weekTasksProvider(weekOf).future);
+      await ref.read(pdfExportServiceProvider).exportTasksBacklog(
+            tasks: tasks,
+            periodLabel: reviewWeekRangeLabel(weekOf),
+          );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
   }
 
   void _toggleNextAction(int index) {

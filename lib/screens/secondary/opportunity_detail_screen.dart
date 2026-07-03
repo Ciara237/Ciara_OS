@@ -11,6 +11,7 @@ import 'package:ciaraos/widgets/opportunities/opportunity_pipeline_stepper.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OpportunityDetailScreen extends ConsumerStatefulWidget {
   const OpportunityDetailScreen({super.key, required this.opportunityId});
@@ -227,6 +228,13 @@ class _OpportunityDetailScreenState
                       onEdit: () => setState(() => _isEditingFitNotes = true),
                       onSave: () => _saveFitNotes(opportunity),
                     ),
+                    if (opportunity.link != null &&
+                        opportunity.link!.trim().isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      _OpportunityApplicationLinkCard(
+                        link: opportunity.link!.trim(),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.lg),
                     OpportunityMetadataSection(
                       updatedAt: opportunity.updatedAt,
@@ -404,6 +412,78 @@ class _OpportunityTopSection extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _OpportunityApplicationLinkCard extends StatelessWidget {
+  const _OpportunityApplicationLinkCard({required this.link});
+
+  final String link;
+
+  Future<void> _openLink() async {
+    final uri = Uri.tryParse(link);
+    if (uri == null) {
+      return;
+    }
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _openLink,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'APPLICATION LINK',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.link,
+                      size: AppSpacing.lg,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        link,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          decoration: TextDecoration.none,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -37,37 +37,41 @@ class OpportunityGroupHeader extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final statusColor = opportunityStatusColor(status);
 
-    return InkWell(
-      onTap: isCollapsible ? onToggle : null,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: statusColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                '${_statusLabel(status)} ($count)',
-                style: AppTypography.labelSmall.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isCollapsible ? onToggle : null,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  shape: BoxShape.circle,
                 ),
               ),
-            ),
-            if (isCollapsible)
-              Icon(
-                isExpanded ? Icons.expand_less : Icons.expand_more,
-                color: colorScheme.onSurfaceVariant,
-                size: AppSpacing.lg,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  '${_statusLabel(status)} ($count)',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
               ),
-          ],
+              if (isCollapsible)
+                Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: colorScheme.onSurfaceVariant,
+                  size: AppSpacing.lg,
+                ),
+            ],
+          ),
         ),
       ),
     );

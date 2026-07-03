@@ -44,6 +44,8 @@ class AiContextBuilder {
       };
     });
 
+    final weekActive =
+        weekTasks.where((task) => task.status != TaskStatus.done).toList();
     final weekCompleted =
         weekTasks.where((task) => task.status == TaskStatus.done).length;
     final totalFocusSeconds = weekTasks.fold<int>(
@@ -53,6 +55,9 @@ class AiContextBuilder {
 
     Task? mostPostponed;
     for (final task in allTasks) {
+      if (task.status == TaskStatus.done) {
+        continue;
+      }
       if (mostPostponed == null ||
           task.postponeCount > mostPostponed.postponeCount) {
         mostPostponed = task;
@@ -61,13 +66,17 @@ class AiContextBuilder {
 
     return {
       'date': DateFormat('yyyy-MM-dd').format(now),
-      'tasks_today': todayTasks.map(_taskToJson).toList(),
+      'tasks_today': todayTasks
+          .where((task) => task.status != TaskStatus.done)
+          .map(_taskToJson)
+          .toList(),
       'this_week': {
-        'started_rate': weekTasks.isEmpty
+        'started_rate': weekActive.isEmpty
             ? 0.0
-            : weekTasks.where((task) => task.started).length / weekTasks.length,
+            : weekActive.where((task) => task.started).length /
+                weekActive.length,
         'tasks_completed': weekCompleted,
-        'tasks_total': weekTasks.length,
+        'tasks_total': weekActive.length,
         'total_focused_hours': totalFocusSeconds / 3600.0,
       },
       'active_projects': activeProjects.toList(),
