@@ -61,7 +61,27 @@ class _GitHubActivityScreenState extends ConsumerState<GitHubActivityScreen> {
           const SizedBox(height: AppSpacing.lg),
           _SyncRow(
             isSyncing: isSyncing,
-            onSync: () => notifier.sync(force: true),
+            onSync: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final ok = await notifier.sync(force: true);
+              if (!mounted) {
+                return;
+              }
+              if (!ok) {
+                final activity = ref.read(githubActivityProvider).value;
+                final hasError = ref.read(githubActivityProvider).hasError;
+                if (activity == null || hasError) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Could not sync GitHub activity. '
+                        'Check that the backend is running.',
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
           ),
           const SizedBox(height: AppSpacing.lg),
           activityAsync.when(

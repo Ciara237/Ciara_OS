@@ -21,15 +21,13 @@ class GitHubActivityNotifier extends Notifier<AsyncValue<GitHubActivity?>> {
   DateTime? _lastSynced;
   bool _syncInProgress = false;
 
-  Future<void> sync({bool force = false}) async {
+  Future<bool> sync({bool force = false}) async {
     if (_syncInProgress) {
-      return;
+      return state.value != null;
     }
 
     final previous = state.value;
-    if (previous == null) {
-      state = const AsyncValue.loading();
-    }
+    state = const AsyncValue.loading();
 
     _syncInProgress = true;
     final username = ref.read(profileProvider).githubUsername;
@@ -42,11 +40,14 @@ class GitHubActivityNotifier extends Notifier<AsyncValue<GitHubActivity?>> {
       if (activity != null) {
         _lastSynced = DateTime.now();
         state = AsyncValue.data(activity);
-      } else if (previous != null) {
+        return true;
+      }
+      if (previous != null) {
         state = AsyncValue.data(previous);
       } else {
         state = const AsyncValue.data(null);
       }
+      return false;
     } on GitHubRateLimitException {
       if (previous != null) {
         state = AsyncValue.data(previous);
@@ -56,12 +57,14 @@ class GitHubActivityNotifier extends Notifier<AsyncValue<GitHubActivity?>> {
           StackTrace.current,
         );
       }
+      return false;
     } catch (error, stackTrace) {
       if (previous != null) {
         state = AsyncValue.data(previous);
       } else {
         state = AsyncValue.error(error, stackTrace);
       }
+      return false;
     } finally {
       _syncInProgress = false;
     }

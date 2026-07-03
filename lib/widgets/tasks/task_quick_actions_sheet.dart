@@ -1,3 +1,4 @@
+import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_typography.dart';
@@ -21,6 +22,35 @@ Future<void> showTaskQuickActionsSheet({
         ref.invalidate(taskByIdProvider(task.id));
       }
 
+      Future<void> postponeTask() async {
+        if (task.status == TaskStatus.done) {
+          return;
+        }
+
+        await repository.incrementPostponeCount(task.id);
+        final latest = await repository.getById(task.id) ?? task;
+        await repository.update(
+          latest
+              .copyWith(
+                today: false,
+                updatedAt: DateTime.now(),
+              )
+              .toCompanion(),
+        );
+        ref.invalidate(taskByIdProvider(task.id));
+
+        if (sheetContext.mounted) {
+          Navigator.pop(sheetContext);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Task postponed (${latest.postponeCount}x)',
+              ),
+            ),
+          );
+        }
+      }
+
       return SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -42,6 +72,17 @@ Future<void> showTaskQuickActionsSheet({
                 }
               },
             ),
+            if (task.status != TaskStatus.done)
+              ListTile(
+                leading: Icon(Icons.schedule, color: colorScheme.primary),
+                title: Text(
+                  'Postpone',
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                onTap: postponeTask,
+              ),
             ListTile(
               leading: Icon(Icons.check_circle, color: colorScheme.primary),
               title: Text(

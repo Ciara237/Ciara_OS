@@ -1,3 +1,8 @@
+import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/providers/csv_export_provider.dart';
+import 'package:ciaraos/providers/pdf_export_provider.dart';
+import 'package:ciaraos/providers/task_providers.dart';
+import 'package:ciaraos/widgets/export/pdf_export_sheets.dart';
 import 'package:ciaraos/providers/calendar_providers.dart';
 import 'package:ciaraos/providers/note_providers.dart';
 import 'package:ciaraos/providers/notification_providers.dart';
@@ -17,6 +22,7 @@ import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -172,6 +178,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     setState(() => _deepWorkNudgeTime = picked);
     await ref.read(notificationServiceProvider).scheduleDeepWorkNudge(picked);
+  }
+
+  Future<void> _showExportDataSheet() {
+    return showTasksExportSheet(
+      context: context,
+      onExportPdf: () => _exportAllTasksPdf(),
+      onExportCsv: () => _exportAllTasksCsv(),
+    );
+  }
+
+  Future<void> _exportAllTasksPdf() async {
+    final brightness = Theme.of(context).brightness;
+
+    try {
+      final tasks = ref.read(allTasksProvider).value ?? const <Task>[];
+      final periodLabel = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      await ref.read(pdfExportServiceProvider).exportTasksBacklog(
+            tasks: tasks,
+            periodLabel: periodLabel,
+            brightness: brightness,
+          );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _exportAllTasksCsv() async {
+    try {
+      final tasks = ref.read(allTasksProvider).value ?? const <Task>[];
+      final periodLabel = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      await ref.read(csvExportServiceProvider).exportTasks(
+            tasks: tasks,
+            periodLabel: periodLabel,
+          );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
   }
 
   Future<void> _saveGithubUsername() async {
@@ -474,16 +527,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       _SettingsActionRow(
                         title: 'Export Data',
-                        subtitle: 'Download all your tasks and reviews as JSON',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Export coming in a future update.',
-                              ),
-                            ),
-                          );
-                        },
+                        subtitle: 'Export all tasks as PDF or CSV',
+                        onTap: _showExportDataSheet,
                       ),
                       Divider(
                         height: AppSpacing.lg,

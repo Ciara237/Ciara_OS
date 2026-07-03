@@ -171,6 +171,28 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     await _persistTask(task.copyWith(today: !task.today));
   }
 
+  Future<void> _postponeTask(Task task) async {
+    final repository = ref.read(taskRepositoryProvider);
+    await repository.incrementPostponeCount(task.id);
+    final latest = await repository.getById(task.id) ?? task;
+    await _persistTask(
+      latest.copyWith(
+        today: false,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Task postponed (${latest.postponeCount}x)'),
+      ),
+    );
+  }
+
   Future<void> _pickDeadline(Task task) async {
     final now = DateTime.now();
     final initial = task.deadline ?? now;
@@ -319,6 +341,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                       onPause: () => _pauseTask(task),
                       onMarkComplete: () => _markComplete(task),
                       onToggleToday: () => _toggleToday(task),
+                      onPostpone: () => _postponeTask(task),
                       onDelete: () => _deleteTask(task),
                     ),
                   ),
@@ -394,6 +417,7 @@ class TaskDetailCard extends StatelessWidget {
     required this.onPause,
     required this.onMarkComplete,
     required this.onToggleToday,
+    required this.onPostpone,
     required this.onDelete,
   });
 
@@ -414,6 +438,7 @@ class TaskDetailCard extends StatelessWidget {
   final VoidCallback onPause;
   final VoidCallback onMarkComplete;
   final VoidCallback onToggleToday;
+  final VoidCallback onPostpone;
   final VoidCallback onDelete;
 
   @override
@@ -488,6 +513,7 @@ class TaskDetailCard extends StatelessWidget {
               child: TaskDetailMetadataStrip(
                 task: task,
                 onToggleToday: onToggleToday,
+                onPostpone: onPostpone,
                 onDelete: onDelete,
               ),
             ),
@@ -1110,17 +1136,24 @@ class TaskDetailMetadataStrip extends StatelessWidget {
     super.key,
     required this.task,
     required this.onToggleToday,
+    required this.onPostpone,
     required this.onDelete,
   });
 
   final Task task;
   final VoidCallback onToggleToday;
+  final VoidCallback onPostpone;
   final VoidCallback onDelete;
+
+  static const _postponeWarningColor = Color(0xFFF59E0B);
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final procrastinationSignal = task.postponeCount > 3;
+    final showPostpone = task.status != TaskStatus.done;
+    final postponeAccent =
+        task.postponeCount > 3 ? _postponeWarningColor : colorScheme.onSurfaceVariant;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1150,18 +1183,41 @@ class TaskDetailMetadataStrip extends StatelessWidget {
               : colorScheme.onSurface,
         ),
         const SizedBox(height: AppSpacing.md),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton(
-            onPressed: onToggleToday,
-            child: Text(
-              task.today ? "Remove from Today's Queue" : 'Add to Today',
-              style: AppTypography.labelLarge.copyWith(
-                color: colorScheme.primary,
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            TextButton(
+              onPressed: onToggleToday,
+              child: Text(
+                task.today ? "Remove from Today's Queue" : 'Add to Today',
+                style: AppTypography.labelLarge.copyWith(
+                  color: colorScheme.primary,
+                ),
+                textAlign: TextAlign.left,
               ),
-              textAlign: TextAlign.left,
             ),
-          ),
+            if (showPostpone)
+              OutlinedButton.icon(
+                onPressed: onPostpone,
+                icon: Icon(Icons.schedule, size: 18, color: postponeAccent),
+                label: Text(
+                  'POSTPONE',
+                  style: AppTypography.labelLarge.copyWith(
+                    color: postponeAccent,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: postponeAccent,
+                  side: BorderSide(color: postponeAccent),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                ),
+              ),
+          ],
         ),
         Center(
           child: TextButton(

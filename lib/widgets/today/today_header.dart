@@ -62,7 +62,7 @@ class TodayHeader extends ConsumerWidget {
           IconButton(
             onPressed: () => context.push('/daily-brief'),
             icon: Icon(
-              Icons.notifications_outlined,
+              Icons.rocket_launch,
               color: colorScheme.onSurfaceVariant,
               size: 24,
             ),
@@ -71,7 +71,7 @@ class TodayHeader extends ConsumerWidget {
               minWidth: _headerActionSize,
               minHeight: _headerActionSize,
             ),
-            tooltip: 'Daily brief',
+            tooltip: 'Daily Brief',
           ),
           IconButton(
             onPressed: () {
