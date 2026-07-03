@@ -18,6 +18,7 @@ import 'package:ciaraos/screens/analytics/productivity_trends_screen.dart';
 import 'package:ciaraos/screens/knowledge/note_editor_screen.dart';
 import 'package:ciaraos/screens/knowledge/notes_screen.dart';
 import 'package:ciaraos/screens/knowledge/resources_screen.dart';
+import 'package:ciaraos/screens/skills/calendar_screen.dart';
 import 'package:ciaraos/screens/skills/certifications_screen.dart';
 import 'package:ciaraos/screens/skills/security_practice_screen.dart';
 import 'package:ciaraos/screens/skills/github_activity_screen.dart';
@@ -100,6 +101,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ReviewScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/calendar',
+        builder: (context, state) => const CalendarScreen(),
       ),
       GoRoute(
         path: '/settings',

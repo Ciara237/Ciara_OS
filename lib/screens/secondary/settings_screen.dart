@@ -1,3 +1,4 @@
+import 'package:ciaraos/providers/calendar_providers.dart';
 import 'package:ciaraos/providers/note_providers.dart';
 import 'package:ciaraos/providers/onboarding_provider.dart';
 import 'package:ciaraos/providers/theme_provider.dart';
@@ -9,6 +10,7 @@ import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/widgets/navigation/minimal_back_header.dart';
 import 'package:ciaraos/widgets/navigation/primary_drawer.dart';
+import 'package:ciaraos/widgets/calendar/calendar_setup_sheet.dart';
 import 'package:ciaraos/widgets/notion/notion_setup_sheet.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
@@ -267,6 +269,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final themeMode = ref.watch(themeModeProvider);
     final notionHealthAsync = ref.watch(notionHealthProvider);
+    final calendarAuthAsync = ref.watch(calendarAuthProvider);
 
     final openedFromStack = GoRouter.of(context).canPop();
 
@@ -446,6 +449,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             onTap: () => showNotionSetupSheet(context),
                             trailing: _StatusDot(
                               color: connected
+                                  ? const Color(0xFF10B981)
+                                  : colorScheme.error,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      calendarAuthAsync.when(
+                        loading: () => _SettingsActionRow(
+                          title: 'Google Calendar',
+                          subtitle: 'Checking connection…',
+                          onTap: () => showCalendarSetupSheet(context, ref),
+                        ),
+                        error: (_, _) => _SettingsActionRow(
+                          title: 'Google Calendar',
+                          subtitle: 'Not connected',
+                          onTap: () => showCalendarSetupSheet(context, ref),
+                          trailing: _StatusDot(color: colorScheme.error),
+                        ),
+                        data: (status) {
+                          return _SettingsActionRow(
+                            title: 'Google Calendar',
+                            subtitle: status.authorized
+                                ? (status.email ?? 'Connected')
+                                : 'Not connected',
+                            onTap: () => showCalendarSetupSheet(context, ref),
+                            trailing: _StatusDot(
+                              color: status.authorized
                                   ? const Color(0xFF10B981)
                                   : colorScheme.error,
                             ),
