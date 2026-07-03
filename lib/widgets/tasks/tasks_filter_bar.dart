@@ -1,4 +1,5 @@
 import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/providers/csv_export_provider.dart';
 import 'package:ciaraos/providers/pdf_export_provider.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
@@ -57,31 +58,49 @@ class TasksFilterBar extends ConsumerWidget {
   }
 
   void _showTasksExportSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet<void>(
+    showTasksExportSheet(
       context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => TasksPdfExportSheet(
-        onExport: () async {
-          try {
-            final tasks =
-                ref.read(filteredTasksProvider).asData?.value ?? const <Task>[];
-            final periodLabel =
-                DateFormat('yyyy-MM-dd').format(DateTime.now());
-            await ref.read(pdfExportServiceProvider).exportTasksBacklog(
-                  tasks: tasks,
-                  periodLabel: periodLabel,
-                );
-          } catch (error) {
-            if (sheetContext.mounted) {
-              ScaffoldMessenger.of(sheetContext).showSnackBar(
-                SnackBar(content: Text('Export failed: $error')),
-              );
-            }
-            rethrow;
-          }
-        },
-      ),
+      onExportPdf: () => _exportTasksPdf(context, ref),
+      onExportCsv: () => _exportTasksCsv(context, ref),
     );
+  }
+
+  Future<void> _exportTasksPdf(BuildContext context, WidgetRef ref) async {
+    try {
+      final tasks =
+          ref.read(filteredTasksProvider).asData?.value ?? const <Task>[];
+      final periodLabel = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      await ref.read(pdfExportServiceProvider).exportTasksBacklog(
+            tasks: tasks,
+            periodLabel: periodLabel,
+          );
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _exportTasksCsv(BuildContext context, WidgetRef ref) async {
+    try {
+      final tasks =
+          ref.read(filteredTasksProvider).asData?.value ?? const <Task>[];
+      final periodLabel = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      await ref.read(csvExportServiceProvider).exportTasks(
+            tasks: tasks,
+            periodLabel: periodLabel,
+          );
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
   }
 }
 

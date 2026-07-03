@@ -1,6 +1,7 @@
 import 'package:ciaraos/models/enums/domain.dart';
 import 'package:ciaraos/models/weekly_debrief.dart';
 import 'package:ciaraos/models/weekly_review.dart';
+import 'package:ciaraos/providers/csv_export_provider.dart';
 import 'package:ciaraos/providers/focus_session_repository_provider.dart';
 import 'package:ciaraos/providers/pdf_export_provider.dart';
 import 'package:ciaraos/providers/task_providers.dart';
@@ -101,13 +102,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   void _exportLogs() {
-    showModalBottomSheet<void>(
+    showReviewExportSheet(
       context: context,
-      showDragHandle: true,
-      builder: (context) => ReviewPdfExportSheet(
-        onExportWeeklyReview: _exportWeeklyReviewPdf,
-        onExportTaskBreakdown: _exportTaskBreakdownPdf,
-      ),
+      onExportPdf: _exportWeeklyReviewPdf,
+      onExportCsv: _exportWeekTasksCsv,
     );
   }
 
@@ -169,11 +167,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     }
   }
 
-  Future<void> _exportTaskBreakdownPdf() async {
+  Future<void> _exportWeekTasksCsv() async {
     try {
       final weekOf = mondayOfWeek(DateTime.now());
       final tasks = await ref.read(weekTasksProvider(weekOf).future);
-      await ref.read(pdfExportServiceProvider).exportTasksBacklog(
+      await ref.read(csvExportServiceProvider).exportTasks(
             tasks: tasks,
             periodLabel: reviewWeekRangeLabel(weekOf),
           );
