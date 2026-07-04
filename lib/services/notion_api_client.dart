@@ -64,7 +64,7 @@ class NotionApiClient {
 
     return const NotionHealthStatus(
       configured: false,
-      databaseAccessible: false,
+      pagesAccessible: false,
       pageCount: 0,
     );
   }

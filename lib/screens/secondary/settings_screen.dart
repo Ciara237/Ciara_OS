@@ -594,21 +594,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(height: AppSpacing.md),
                       notionHealthAsync.when(
                         loading: () => _SettingsActionRow(
-                          title: 'Notion Database',
+                          title: 'Notion',
                           subtitle: 'Checking connection…',
                           onTap: () => showNotionSetupSheet(context),
                         ),
                         error: (_, _) => _SettingsActionRow(
-                          title: 'Notion Database',
+                          title: 'Notion',
                           subtitle: 'Not configured',
                           onTap: () => showNotionSetupSheet(context),
                           trailing: _StatusDot(color: colorScheme.error),
                         ),
                         data: (health) {
                           final connected =
-                              health.configured && health.databaseAccessible;
+                              health.configured && health.pagesAccessible;
                           return _SettingsActionRow(
-                            title: 'Notion Database',
+                            title: 'Notion',
                             subtitle: connected ? 'Connected' : 'Not configured',
                             onTap: () => showNotionSetupSheet(context),
                             trailing: _StatusDot(

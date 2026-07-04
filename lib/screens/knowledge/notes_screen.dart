@@ -149,12 +149,12 @@ class _NotionSyncSection extends ConsumerWidget {
         if (!health.configured) {
           return const _NotionSetupCard();
         }
-        if (!health.databaseAccessible) {
+        if (!health.pagesAccessible) {
           return const _NotionSetupCard(
             message:
-                'Notion is configured but the database is not accessible. '
-                'Share your database with the integration and verify '
-                'NOTION_DATABASE_ID.',
+                'Notion is configured but no pages are accessible. '
+                'Share pages with the Ciara OS integration via '
+                'page → ... → Connections.',
           );
         }
         return _NotionSyncCard(pageCount: health.pageCount);
@@ -167,7 +167,8 @@ class _NotionSetupCard extends StatelessWidget {
   const _NotionSetupCard({
     this.message =
         'Connect Notion to sync your pages here. '
-        'Add NOTION_TOKEN and NOTION_DATABASE_ID to the backend .env file.',
+        'Add NOTION_TOKEN to the backend .env file and share pages '
+        'with the Ciara OS integration.',
   });
 
   final String message;
@@ -216,8 +217,7 @@ class _NotionSetupCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Text(
-              'NOTION_TOKEN=your_notion_integration_token\n'
-              'NOTION_DATABASE_ID=your_database_id',
+              'NOTION_TOKEN=your_notion_integration_token',
               style: AppTypography.labelSmall.copyWith(
                 fontFamily: 'monospace',
                 color: colorScheme.onSurfaceVariant,

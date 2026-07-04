@@ -54,18 +54,18 @@ class NotionPagesResponse {
 class NotionHealthStatus {
   const NotionHealthStatus({
     required this.configured,
-    required this.databaseAccessible,
+    required this.pagesAccessible,
     required this.pageCount,
   });
 
   final bool configured;
-  final bool databaseAccessible;
+  final bool pagesAccessible;
   final int pageCount;
 
   factory NotionHealthStatus.fromJson(Map<String, dynamic> json) {
     return NotionHealthStatus(
       configured: json['configured'] as bool? ?? false,
-      databaseAccessible: json['database_accessible'] as bool? ?? false,
+      pagesAccessible: json['pages_accessible'] as bool? ?? false,
       pageCount: (json['page_count'] as num?)?.toInt() ?? 0,
     );
   }

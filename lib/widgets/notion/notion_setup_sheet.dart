@@ -30,12 +30,12 @@ Future<void> showNotionSetupSheet(BuildContext context) {
               const SizedBox(height: AppSpacing.lg),
               const _SetupStep(
                 number: '1',
-                text:
-                    'Create a Notion integration at notion.so/my-integrations',
+                text: 'Go to notion.so/my-integrations',
               ),
               const _SetupStep(
                 number: '2',
-                text: 'Share your database with the integration',
+                text:
+                    'Create an integration named "Ciara OS" and copy the token',
               ),
               const _SetupStep(
                 number: '3',
@@ -43,11 +43,9 @@ Future<void> showNotionSetupSheet(BuildContext context) {
               ),
               const _SetupStep(
                 number: '4',
-                text: 'Add NOTION_DATABASE_ID=... to backend .env',
-              ),
-              const _SetupStep(
-                number: '5',
-                text: 'Restart the backend',
+                text:
+                    'In Notion, share any page you want synced: open the page → '
+                    '... → Connections → Ciara OS',
               ),
               const SizedBox(height: AppSpacing.lg),
               Container(
@@ -58,8 +56,7 @@ Future<void> showNotionSetupSheet(BuildContext context) {
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 ),
                 child: Text(
-                  'NOTION_TOKEN=your_notion_integration_token\n'
-                  'NOTION_DATABASE_ID=your_database_id',
+                  'NOTION_TOKEN=your_notion_integration_token',
                   style: AppTypography.labelSmall.copyWith(
                     fontFamily: 'monospace',
                     color: colorScheme.onSurfaceVariant,
