@@ -390,7 +390,7 @@ class NotificationService {
     };
 
     return [
-      if (regional != null) regional,
+      ?regional,
       'Etc/GMT$etcSign${hours.abs()}',
       'UTC',
     ];
