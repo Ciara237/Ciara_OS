@@ -360,10 +360,40 @@ class NotificationService {
   void _configureLocalTimeZone() {
     tz.initializeTimeZones();
     final offset = DateTime.now().timeZoneOffset;
+    for (final name in _timeZoneCandidates(offset)) {
+      try {
+        tz.setLocalLocation(tz.getLocation(name));
+        return;
+      } catch (_) {}
+    }
+    tz.setLocalLocation(tz.getLocation('UTC'));
+  }
+
+  List<String> _timeZoneCandidates(Duration offset) {
+    final minutes = offset.inMinutes;
     final hours = offset.inHours;
-    final sign = hours >= 0 ? '-' : '+';
-    final locationName = 'Etc/GMT$sign${hours.abs()}';
-    tz.setLocalLocation(tz.getLocation(locationName));
+    final etcSign = hours >= 0 ? '-' : '+';
+
+    final regional = switch (minutes) {
+      0 => 'UTC',
+      60 => 'Europe/Paris',
+      120 => 'Europe/Helsinki',
+      180 => 'Europe/Moscow',
+      330 => 'Asia/Kolkata',
+      480 => 'Asia/Singapore',
+      540 => 'Asia/Tokyo',
+      -300 => 'America/New_York',
+      -360 => 'America/Chicago',
+      -420 => 'America/Denver',
+      -480 => 'America/Los_Angeles',
+      _ => null,
+    };
+
+    return [
+      if (regional != null) regional,
+      'Etc/GMT$etcSign${hours.abs()}',
+      'UTC',
+    ];
   }
 
   String _channelName(String channelId) {

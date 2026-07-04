@@ -7,6 +7,7 @@ import 'package:ciaraos/providers/focus_session_repository_provider.dart';
 import 'package:ciaraos/repositories/focus_session_repository.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/services/daily_activity_stats.dart';
+import 'package:ciaraos/services/task_completion_service.dart';
 import 'package:ciaraos/utils/deep_work_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -267,27 +268,10 @@ class DeepWorkEngineNotifier extends Notifier<ActiveDeepWorkState> {
 
   /// Called when marking task complete — computes planning accuracy.
   Future<void> applyPlanningAccuracyOnComplete(int taskId) async {
-    final task = await ref.read(taskRepositoryProvider).getById(taskId);
-    if (task == null) {
-      return;
-    }
-
-    final accuracy = computePlanningAccuracy(
-      estimatedMinutes: task.estimatedDurationMinutes,
-      totalFocusedSeconds: task.totalFocusedSeconds,
+    await persistPlanningAccuracyForTask(
+      ref.read(taskRepositoryProvider),
+      taskId,
     );
-    if (accuracy == null) {
-      return;
-    }
-
-    await ref.read(taskRepositoryProvider).update(
-          task
-              .copyWith(
-                planningAccuracy: accuracy,
-                updatedAt: DateTime.now(),
-              )
-              .toCompanion(),
-        );
     ref.invalidate(taskByIdProvider(taskId));
   }
 

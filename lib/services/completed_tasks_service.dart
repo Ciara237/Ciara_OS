@@ -4,6 +4,7 @@ import 'package:ciaraos/models/enums/priority.dart';
 import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/utils/task_filter_utils.dart';
+import 'package:ciaraos/utils/planning_accuracy_utils.dart';
 import 'package:intl/intl.dart';
 
 class CompletedTasksService {
@@ -116,12 +117,7 @@ class CompletedTasksService {
     final avgPerDay = daysElapsed <= 0 ? 0.0 : deepWorkHours / daysElapsed;
 
     final accuracyTasks = completed
-        .where(
-          (task) =>
-              task.planningAccuracy != null &&
-              task.estimatedDurationMinutes != null &&
-              task.estimatedDurationMinutes! > 0,
-        )
+        .where(taskQualifiesForPlanningAccuracy)
         .toList();
     final avgAccuracy = accuracyTasks.isEmpty
         ? null

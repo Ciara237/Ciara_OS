@@ -45,11 +45,10 @@ class _CalendarStripState extends ConsumerState<CalendarStrip> {
     final colorScheme = Theme.of(context).colorScheme;
     final eventsAsync = ref.watch(calendarEventsProvider);
     final today = DateTime.now();
-    final todayEvents = eventsAsync.value
-            ?.where((event) => isSameCalendarDay(event.start, today))
-            .toList() ??
-        const <CalendarEvent>[];
-    todayEvents.sort((a, b) => a.start.compareTo(b.start));
+    final todayEvents = (eventsAsync.value ?? const <CalendarEvent>[])
+        .where((event) => isSameCalendarDay(event.start, today))
+        .toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),

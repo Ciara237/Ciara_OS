@@ -4,6 +4,7 @@ import 'package:ciaraos/models/project.dart';
 import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/daily_stats_providers.dart';
 import 'package:ciaraos/providers/focus_session_provider.dart';
+import 'package:ciaraos/services/task_completion_service.dart';
 import 'package:ciaraos/services/daily_activity_stats.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/providers/task_providers.dart';
@@ -156,8 +157,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
     setState(() => _isUpdating = true);
     try {
-      await _persistTask(task.markedDone());
-      await engine.applyPlanningAccuracyOnComplete(task.id);
+      await markTaskDone(ref, task);
       await DailyActivityStats.recordActiveDay();
       ref.read(dailyStatsRevisionProvider.notifier).state++;
     } finally {

@@ -6,6 +6,7 @@ import 'package:ciaraos/theme/app_colors.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/deep_work_utils.dart';
+import 'package:ciaraos/utils/planning_accuracy_utils.dart';
 import 'package:ciaraos/utils/domain_icons.dart';
 import 'package:ciaraos/widgets/analytics/accuracy_trend_chart.dart';
 import 'package:ciaraos/widgets/analytics/inline_section_empty_state.dart';
@@ -28,14 +29,7 @@ _AccuracyDataState _resolveState(int qualifyingCount) {
 }
 
 int _qualifyingTaskCount(List<Task> tasks) {
-  return tasks
-      .where(
-        (task) =>
-            task.planningAccuracy != null &&
-            task.estimatedDurationMinutes != null &&
-            task.estimatedDurationMinutes! > 0,
-      )
-      .length;
+  return countQualifyingPlanningAccuracyTasks(tasks);
 }
 
 class PlanningAccuracyScreen extends ConsumerWidget {

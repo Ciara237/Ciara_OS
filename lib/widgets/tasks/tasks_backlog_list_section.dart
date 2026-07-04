@@ -1,5 +1,6 @@
 import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/services/task_completion_service.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/utils/task_filter_utils.dart';
@@ -14,10 +15,7 @@ class TasksBacklogListSection extends ConsumerWidget {
   const TasksBacklogListSection({super.key});
 
   Future<void> _markDone(WidgetRef ref, Task task) async {
-    final repository = ref.read(taskRepositoryProvider);
-    await repository.update(
-      task.markedDone().toCompanion(),
-    );
+    await markTaskDone(ref, task);
   }
 
   @override

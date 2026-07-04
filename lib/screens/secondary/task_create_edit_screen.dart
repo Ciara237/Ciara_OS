@@ -7,6 +7,7 @@ import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/notification_providers.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/providers/task_providers.dart';
+import 'package:ciaraos/services/task_completion_service.dart';
 import 'package:ciaraos/theme/app_colors.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_theme.dart';
@@ -178,6 +179,9 @@ class _TaskCreateEditScreenState extends ConsumerState<TaskCreateEditScreen> {
         );
         await repository.update(task.toCompanion());
         ref.invalidate(taskByIdProvider(task.id));
+        if (_selectedStatus == TaskStatus.done) {
+          await persistPlanningAccuracyForTask(repository, task.id);
+        }
         await scheduleDeadlineIfEnabled(
           ref,
           id: task.id,

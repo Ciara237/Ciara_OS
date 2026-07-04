@@ -1,5 +1,6 @@
 import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/services/task_completion_service.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ Future<void> showTaskQuickActionsSheet({
                 ),
               ),
               onTap: () async {
-                await updateTask(task.markedDone());
+                await markTaskDone(ref, task);
                 if (sheetContext.mounted) {
                   Navigator.pop(sheetContext);
                 }

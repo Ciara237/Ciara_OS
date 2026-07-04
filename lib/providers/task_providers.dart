@@ -10,6 +10,8 @@ import 'package:ciaraos/repositories/task_repository.dart';
 import 'package:ciaraos/services/domain_analytics_service.dart';
 import 'package:ciaraos/services/planning_accuracy_service.dart';
 import 'package:ciaraos/services/productivity_trends_service.dart';
+import 'package:ciaraos/services/task_completion_service.dart';
+import 'package:ciaraos/utils/planning_accuracy_utils.dart';
 import 'package:ciaraos/utils/task_filter_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -79,8 +81,25 @@ final domainBreakdownProvider =
 
 final planningAccuracyProvider = FutureProvider<PlanningAccuracyData>((ref) async {
   ref.watch(allTasksProvider);
+  final repository = ref.read(taskRepositoryProvider);
   final tasks = await ref.watch(allTasksProvider.future);
-  return PlanningAccuracyService().compute(tasks);
+
+  for (final task in tasks) {
+    if (taskHasPlanningAccuracyInputs(task) && task.planningAccuracy == null) {
+      await persistPlanningAccuracyForTask(repository, task.id);
+    }
+  }
+
+  final refreshedTasks = await Future.wait(
+    tasks.map((task) async {
+      if (taskHasPlanningAccuracyInputs(task) && task.planningAccuracy == null) {
+        return await repository.getById(task.id) ?? task;
+      }
+      return task;
+    }),
+  );
+
+  return PlanningAccuracyService().compute(refreshedTasks);
 });
 
 final productivityTrendsProvider =

@@ -2,6 +2,7 @@ import 'package:ciaraos/models/enums/domain.dart';
 import 'package:ciaraos/models/planning_accuracy_data.dart';
 import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/utils/domain_icons.dart';
+import 'package:ciaraos/utils/planning_accuracy_utils.dart';
 
 class PlanningAccuracyService {
   static const minTasksForInsights = 5;
@@ -46,9 +47,7 @@ class PlanningAccuracyService {
   }
 
   static bool _hasAccuracyData(Task task) {
-    return task.planningAccuracy != null &&
-        task.estimatedDurationMinutes != null &&
-        task.estimatedDurationMinutes! > 0;
+    return taskQualifiesForPlanningAccuracy(task);
   }
 
   static double? _meanAccuracy(List<Task> tasks) {

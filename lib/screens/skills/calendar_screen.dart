@@ -3,10 +3,11 @@ import 'package:ciaraos/providers/calendar_providers.dart';
 import 'package:ciaraos/theme/app_colors.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
-import 'package:ciaraos/widgets/navigation/minimal_back_header.dart';
+import 'package:ciaraos/utils/domain_icons.dart';
 import 'package:ciaraos/widgets/today/focus_block_scheduler_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -75,15 +76,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final authAsync = ref.watch(calendarAuthProvider);
+    final today = DateTime.now();
+    final isCompact = MediaQuery.sizeOf(context).width < 400;
+    final headerDate = isCompact
+        ? DateFormat('EEE, MMM d, y').format(today)
+        : DateFormat('EEEE, MMMM d, y').format(today);
 
     return ColoredBox(
       color: colorScheme.surface,
       child: Column(
         children: [
-          const MinimalBackHeader(),
+          authAsync.when(
+            loading: () => _CalendarHeader(
+              headerDate: headerDate,
+              onBack: () => context.pop(),
+            ),
+            error: (_, _) => _CalendarHeader(
+              headerDate: headerDate,
+              onBack: () => context.pop(),
+            ),
+            data: (status) => _CalendarHeader(
+              headerDate: headerDate,
+              onBack: () => context.pop(),
+              showSearch: status.authorized,
+            ),
+          ),
           Expanded(
             child: authAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
               error: (_, _) => _UnauthorizedBody(
                 connecting: _connecting,
                 awaitingBrowser: _awaitingBrowser,
@@ -109,6 +130,123 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
+class _CalendarHeader extends StatelessWidget {
+  const _CalendarHeader({
+    required this.headerDate,
+    required this.onBack,
+    this.showSearch = false,
+  });
+
+  final String headerDate;
+  final VoidCallback onBack;
+  final bool showSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.surface,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.sm,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: IconButton(
+                  onPressed: onBack,
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 22,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'SCHEDULE',
+                      style: AppTypography.labelSmall.copyWith(
+                        fontFamily: 'monospace',
+                        color: colorScheme.onSurfaceVariant,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    Text(
+                      'Calendar',
+                      style: AppTypography.headingLarge.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 112,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      headerDate,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                      style: AppTypography.labelSmall.copyWith(
+                        fontFamily: 'monospace',
+                        fontSize: 10,
+                        height: 1.3,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (showSearch)
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.search,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 20,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _UnauthorizedBody extends StatelessWidget {
   const _UnauthorizedBody({
     required this.connecting,
@@ -126,70 +264,75 @@ class _UnauthorizedBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-            border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+    return Material(
+      color: colorScheme.surface,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+              ),
             ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                Icons.calendar_month_outlined,
-                size: 48,
-                color: colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Google Calendar not connected',
-                style: AppTypography.headingMedium.copyWith(
-                  color: colorScheme.onSurface,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.calendar_month,
+                  size: 56,
+                  color: colorScheme.primary,
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Connect to see your schedule, find free windows, and '
-                'schedule [FOCUS] blocks without leaving Ciara OS.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              if (awaitingBrowser) ...[
+                const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Complete authorization in your browser, then tap Done.',
+                  'Google Calendar not connected',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.headingMedium.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Connect your calendar to view events and schedule focus blocks.',
                   textAlign: TextAlign.center,
                   style: AppTypography.bodyMedium.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                FilledButton(
-                  onPressed: onDone,
-                  child: const Text('Done'),
-                ),
-              ] else
-                FilledButton(
-                  onPressed: connecting ? null : onConnect,
-                  child: connecting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Connect Google Calendar →'),
-                ),
-            ],
+                const SizedBox(height: AppSpacing.lg),
+                if (awaitingBrowser) ...[
+                  Text(
+                    'Complete in your browser, then tap Done below',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  FilledButton(
+                    onPressed: onDone,
+                    child: const Text('Done'),
+                  ),
+                ] else
+                  FilledButton(
+                    onPressed: connecting ? null : onConnect,
+                    child: connecting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Connect Google Calendar →'),
+                  ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -199,80 +342,124 @@ class _AuthorizedCalendarBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     final selectedDay = ref.watch(calendarSelectedDayProvider);
     final eventsAsync = ref.watch(calendarEventsProvider);
     final events = eventsAsync.value ?? const <CalendarEvent>[];
-    final dayEvents = events
-        .where((event) => isSameCalendarDay(event.start, selectedDay))
+    final dayEvents = (events
+            .where((event) => isSameCalendarDay(event.start, selectedDay)))
         .toList()
       ..sort((a, b) => a.start.compareTo(b.start));
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.xxl,
-      ),
-      children: [
-        _WeekStrip(
-          selectedDay: selectedDay,
-          events: events,
-          onSelectDay: (day) =>
-              ref.read(calendarSelectedDayProvider.notifier).state = day,
+    return Material(
+      color: colorScheme.surface,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.xxl,
         ),
-        const SizedBox(height: AppSpacing.lg),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                DateFormat('EEEE, MMM d').format(selectedDay).toUpperCase(),
-                style: AppTypography.labelSmall.copyWith(
-                  fontFamily: 'monospace',
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  letterSpacing: 1.1,
+        children: [
+          _WeekStrip(
+            selectedDay: selectedDay,
+            events: events,
+            onSelectDay: (day) =>
+                ref.read(calendarSelectedDayProvider.notifier).state = day,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat('EEEE, MMMM d')
+                      .format(selectedDay)
+                      .toUpperCase(),
+                  style: AppTypography.labelSmall.copyWith(
+                    fontFamily: 'monospace',
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.1,
+                  ),
                 ),
               ),
-            ),
-            TextButton(
-              onPressed: () => showFocusBlockSchedulerSheet(
-                context,
-                ref,
-                preselectedDate: selectedDay,
+              TextButton(
+                onPressed: () => showFocusBlockSchedulerSheet(
+                  context,
+                  ref,
+                  preselectedDate: selectedDay,
+                ),
+                child: Text(
+                  '+ SCHEDULE FOCUS BLOCK',
+                  style: AppTypography.labelSmall.copyWith(
+                    fontFamily: 'monospace',
+                    color: colorScheme.primary,
+                  ),
+                ),
               ),
-              child: const Text('+ Focus Block'),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (eventsAsync.isLoading && dayEvents.isEmpty)
-          const Center(child: CircularProgressIndicator())
-        else if (dayEvents.isEmpty)
-          Text(
-            'No events. Schedule a focus block?',
-            style: AppTypography.bodyMedium.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          )
-        else
-          ...dayEvents.map(
-            (event) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: _CalendarEventCard(event: event),
-            ),
+            ],
           ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(
-          'UPCOMING',
-          style: AppTypography.labelSmall.copyWith(
-            fontFamily: 'monospace',
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            letterSpacing: 1.2,
+          const SizedBox(height: AppSpacing.md),
+          if (eventsAsync.isLoading && dayEvents.isEmpty)
+            const Center(child: CircularProgressIndicator())
+          else if (dayEvents.isEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No events scheduled.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => showFocusBlockSchedulerSheet(
+                    context,
+                    ref,
+                    preselectedDate: selectedDay,
+                  ),
+                  child: const Text('+ Schedule Focus Block'),
+                ),
+              ],
+            )
+          else
+            ...dayEvents.map(
+              (event) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _CalendarEventCard(event: event),
+              ),
+            ),
+          const SizedBox(height: AppSpacing.xl),
+          Row(
+            children: [
+              Text(
+                'UPCOMING',
+                style: AppTypography.labelSmall.copyWith(
+                  fontFamily: 'monospace',
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Next 7 days',
+                style: AppTypography.bodyMedium.copyWith(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _UpcomingSection(events: events, selectedDay: selectedDay),
-      ],
+          const SizedBox(height: AppSpacing.md),
+          _UpcomingSection(events: events, selectedDay: selectedDay),
+        ],
+      ),
     );
   }
 }
@@ -292,8 +479,7 @@ class _WeekStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final today = DateTime.now();
-    final weekStart =
-        selectedDay.subtract(Duration(days: selectedDay.weekday - 1));
+    final weekStart = today.subtract(Duration(days: today.weekday - 1));
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -305,60 +491,71 @@ class _WeekStrip extends StatelessWidget {
             weekStart.day + index,
           );
           final selected = isSameCalendarDay(day, selectedDay);
-          final isToday = isSameCalendarDay(day, today);
           final hasEvents =
               events.any((event) => isSameCalendarDay(event.start, day));
 
           return Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: InkWell(
-              onTap: () => onSelectDay(day),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              child: Container(
-                width: 44,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? colorScheme.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  border: !selected && isToday
-                      ? Border.all(color: colorScheme.primary)
-                      : null,
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      DateFormat('E').format(day)[0],
-                      style: AppTypography.labelSmall.copyWith(
-                        color: selected
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurfaceVariant,
-                        fontSize: 10,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${day.day}',
-                      style: AppTypography.labelLarge.copyWith(
-                        color: selected
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurface,
-                      ),
-                    ),
-                    if (hasEvents)
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
+            child: Material(
+              color: selected
+                  ? colorScheme.primary
+                  : colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              child: InkWell(
+                onTap: () => onSelectDay(day),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                child: Container(
+                  width: 56,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.sm,
+                    horizontal: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    border: !selected
+                        ? Border.all(
+                            color: colorScheme.outlineVariant
+                                .withValues(alpha: 0.25),
+                          )
+                        : null,
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        DateFormat('EEE').format(day).toUpperCase(),
+                        style: AppTypography.labelSmall.copyWith(
+                          fontFamily: 'monospace',
+                          fontSize: 9,
                           color: selected
                               ? colorScheme.onPrimary
-                              : colorScheme.primary,
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        day.day.toString().padLeft(2, '0'),
+                        style: AppTypography.headingLarge.copyWith(
+                          fontSize: 22,
+                          color: selected
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: hasEvents
+                              ? (selected
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.primary)
+                              : Colors.transparent,
                           shape: BoxShape.circle,
                         ),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -391,11 +588,12 @@ class _CalendarEventCard extends ConsumerWidget {
       picked.minute,
     );
 
-    final updated = await ref.read(calendarServiceProvider).rescheduleFocusBlock(
-          eventId: event.id,
-          newStart: newStart,
-          durationMinutes: event.durationMinutes,
-        );
+    final updated =
+        await ref.read(calendarServiceProvider).rescheduleFocusBlock(
+              eventId: event.id,
+              newStart: newStart,
+              durationMinutes: event.durationMinutes,
+            );
     if (updated != null) {
       ref.read(calendarEventsProvider.notifier).upsertEvent(updated);
     }
@@ -425,12 +623,23 @@ class _CalendarEventCard extends ConsumerWidget {
     }
 
     ref.read(calendarEventsProvider.notifier).removeFocusBlock(event.id);
-    final ok = await ref.read(calendarServiceProvider).deleteFocusBlock(
-          event.id,
-        );
+    final ok = await ref
+        .read(calendarServiceProvider)
+        .deleteFocusBlock(event.id);
     if (!ok) {
       ref.read(calendarEventsProvider.notifier).refresh();
     }
+  }
+
+  String _formatStartTime(DateTime time) {
+    if (event.isAllDay) {
+      return 'All day';
+    }
+    return DateFormat('h:mm a').format(time);
+  }
+
+  String _formatEndTime(DateTime time) {
+    return DateFormat('h:mm a').format(time);
   }
 
   @override
@@ -443,103 +652,114 @@ class _CalendarEventCard extends ConsumerWidget {
             : colorScheme.primary)
         : colorScheme.outlineVariant;
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: AppSpacing.taskBorderWidth,
-            decoration: BoxDecoration(
-              color: accentColor,
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(AppSpacing.radiusMd),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: event.isFocusBlock
+            ? Border(left: BorderSide(color: accentColor, width: 4))
+            : Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+              ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 72,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _formatStartTime(event.start),
+                    style: AppTypography.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  if (!event.isAllDay)
+                    Text(
+                      _formatEndTime(event.end),
+                      style: AppTypography.bodyMedium.copyWith(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHigh,
-                borderRadius: const BorderRadius.horizontal(
-                  right: Radius.circular(AppSpacing.radiusMd),
-                ),
-                border: Border(
-                  top: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  ),
-                  right: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  ),
-                  bottom: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           event.isFocusBlock
                               ? event.displayTitle
                               : event.title,
-                          style: AppTypography.bodyMedium.copyWith(
+                          style: AppTypography.headingMedium.copyWith(
+                            fontSize: 16,
                             color: colorScheme.onSurface,
                           ),
                         ),
                       ),
                       if (event.isFocusBlock)
+                        Text(
+                          'FOCUS BLOCK',
+                          style: AppTypography.labelSmall.copyWith(
+                            fontFamily: 'monospace',
+                            fontSize: 9,
+                            color: accentColor,
+                          ),
+                        )
+                      else if (event.durationMinutes > 0 && !event.isAllDay)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
+                            horizontal: AppSpacing.xs,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.12),
+                            color: colorScheme.surfaceContainerHighest,
                             borderRadius:
                                 BorderRadius.circular(AppSpacing.radiusSm),
                           ),
                           child: Text(
-                            'FOCUS BLOCK',
+                            '${event.durationMinutes}M',
                             style: AppTypography.labelSmall.copyWith(
                               fontFamily: 'monospace',
                               fontSize: 9,
-                              color: accentColor,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
-                      if (event.isFocusBlock) ...[
-                        IconButton(
-                          onPressed: () => _reschedule(context, ref),
-                          icon: const Icon(Icons.schedule, size: 18),
-                          tooltip: 'Reschedule',
-                        ),
-                        IconButton(
-                          onPressed: () => _delete(context, ref),
-                          icon: const Icon(Icons.delete_outline, size: 18),
-                          tooltip: 'Delete',
-                        ),
-                      ],
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    formatEventTimeRange(event),
-                    style: AppTypography.labelSmall.copyWith(
-                      fontFamily: 'monospace',
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  if (event.durationMinutes > 0 && !event.isAllDay) ...[
+                  if (event.isFocusBlock && domain != null) ...[
                     const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      '${event.durationMinutes} min',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 10,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: accentColor.withValues(alpha: 0.5),
+                        ),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
+                      ),
+                      child: Text(
+                        '${domainLabel(domain)} · ${event.durationMinutes} min',
+                        style: AppTypography.labelSmall.copyWith(
+                          fontFamily: 'monospace',
+                          fontSize: 10,
+                          color: accentColor,
+                        ),
                       ),
                     ),
                   ],
@@ -547,18 +767,68 @@ class _CalendarEventCard extends ConsumerWidget {
                       event.location!.isNotEmpty &&
                       !event.isFocusBlock) ...[
                     const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      event.location!,
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            event.location!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (event.isFocusBlock) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => _reschedule(context, ref),
+                          icon: Icon(
+                            Icons.access_time,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          tooltip: 'Reschedule',
+                        ),
+                        IconButton(
+                          onPressed: () => _delete(context, ref),
+                          icon: Icon(
+                            Icons.delete_outline,
+                            size: 20,
+                            color: colorScheme.error,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          tooltip: 'Delete',
+                        ),
+                      ],
                     ),
                   ],
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -583,13 +853,13 @@ class _UpcomingSection extends StatelessWidget {
     );
     final end = today.add(const Duration(days: 7));
 
-    final upcoming = events
-        .where(
-          (event) =>
-              !event.start.isBefore(today) &&
-              event.start.isBefore(end) &&
-              !isSameCalendarDay(event.start, selectedDay),
-        )
+    final upcoming = (events
+            .where(
+              (event) =>
+                  !event.start.isBefore(today) &&
+                  event.start.isBefore(end) &&
+                  !isSameCalendarDay(event.start, selectedDay),
+            ))
         .toList()
       ..sort((a, b) => a.start.compareTo(b.start));
 
@@ -602,42 +872,15 @@ class _UpcomingSection extends StatelessWidget {
       );
     }
 
-    final grouped = <DateTime, List<CalendarEvent>>{};
-    for (final event in upcoming) {
-      final key = DateTime(
-        event.start.year,
-        event.start.month,
-        event.start.day,
-      );
-      grouped.putIfAbsent(key, () => []).add(event);
-    }
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: grouped.entries.map((entry) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
+      children: upcoming
+          .map(
+            (event) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Text(
-                DateFormat('EEE, MMM d').format(entry.key).toUpperCase(),
-                style: AppTypography.labelSmall.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 10,
-                ),
-              ),
+              child: _UpcomingRow(event: event),
             ),
-            ...entry.value.map(
-              (event) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _UpcomingRow(event: event),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-        );
-      }).toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -650,24 +893,22 @@ class _UpcomingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final domain = event.focusDomain;
-    final accentColor = event.isFocusBlock && domain != null
-        ? AppColors.domainColors[domain]!
-        : colorScheme.outlineVariant;
 
     return Row(
       children: [
-        Container(
-          width: 3,
-          height: 28,
-          decoration: BoxDecoration(
-            color: accentColor,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        SizedBox(
+          width: 56,
+          child: Text(
+            DateFormat('EEE dd').format(event.start).toUpperCase(),
+            style: AppTypography.labelSmall.copyWith(
+              fontFamily: 'monospace',
+              fontSize: 10,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
         SizedBox(
-          width: 64,
+          width: 72,
           child: Text(
             event.isAllDay
                 ? 'All day'
@@ -684,11 +925,30 @@ class _UpcomingRow extends StatelessWidget {
             event.isFocusBlock ? event.displayTitle : event.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.bodyMedium.copyWith(
+            style: AppTypography.bodyLarge.copyWith(
               color: colorScheme.onSurface,
             ),
           ),
         ),
+        if (event.durationMinutes > 0 && !event.isAllDay)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: Text(
+              '${event.durationMinutes}M',
+              style: AppTypography.labelSmall.copyWith(
+                fontFamily: 'monospace',
+                fontSize: 9,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
       ],
     );
   }
