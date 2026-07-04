@@ -68,4 +68,25 @@ abstract final class ExecutionScoreCalculator {
       ),
     );
   }
+
+  static String describeScore(double score) {
+    if (score >= 80) {
+      return 'Strategic performance analysis indicates strong operational '
+          'execution. Efficiency exceeds baseline tolerances for current '
+          'project complexity.';
+    }
+    if (score >= 60) {
+      return 'Strategic performance analysis indicates a steady operational '
+          'baseline. Efficiency is within expected tolerances for current '
+          'project complexity.';
+    }
+    if (score >= 40) {
+      return 'Strategic performance analysis indicates uneven execution '
+          'patterns. Efficiency is below target tolerances — recalibration '
+          'is advised.';
+    }
+    return 'Strategic performance analysis indicates limited execution '
+        'signal this week. Establish consistent focus blocks before scaling '
+        'commitments.';
+  }
 }

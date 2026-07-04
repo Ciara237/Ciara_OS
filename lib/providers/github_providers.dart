@@ -53,7 +53,7 @@ class GitHubActivityNotifier extends Notifier<AsyncValue<GitHubActivity?>> {
         state = AsyncValue.data(previous);
       } else {
         state = AsyncValue.error(
-          'GitHub rate limit hit. Try again later or add GITHUB_TOKEN to the backend.',
+          'GitHub rate limit reached. Try again later.',
           StackTrace.current,
         );
       }

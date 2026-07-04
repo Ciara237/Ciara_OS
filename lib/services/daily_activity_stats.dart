@@ -6,6 +6,14 @@ abstract final class DailyActivityStats {
   static const _streakKey = 'daily_streak';
   static const _lastActiveKey = 'last_active_date';
 
+  static Future<({int streak, String? lastActive})> streakSnapshot() async {
+    final prefs = await SharedPreferences.getInstance();
+    return (
+      streak: prefs.getInt(_streakKey) ?? 0,
+      lastActive: prefs.getString(_lastActiveKey),
+    );
+  }
+
   static String _dateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';

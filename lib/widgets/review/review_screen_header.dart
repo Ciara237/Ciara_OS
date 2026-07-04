@@ -29,28 +29,29 @@ class ReviewScreenHeader extends StatelessWidget {
         Text(
           'EXECUTIVE DEBRIEF',
           style: AppTypography.labelSmall.copyWith(
-            color: colorScheme.primary,
+            color: colorScheme.onSurfaceVariant,
             letterSpacing: 2,
-            fontSize: 11,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          reviewWeekHeaderLabel(weekMonday),
+          reviewWeekTitleLabel(weekMonday),
           style: (isWide ? AppTypography.headingLarge : AppTypography.headingMedium)
               .copyWith(
             color: colorScheme.onSurface,
-            fontSize: isWide ? 26 : 22,
-            height: 1.2,
+            fontSize: isWide ? 28 : 24,
+            fontWeight: FontWeight.w700,
+            height: 1.15,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xs),
         Text(
-          'Strategic performance analysis and system recalibration.',
-          style: AppTypography.bodyLarge.copyWith(
+          reviewWeekRangeLabel(weekMonday),
+          style: AppTypography.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
-            fontSize: 17,
-            height: 1.45,
+            fontSize: 14,
           ),
         ),
       ],

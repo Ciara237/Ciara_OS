@@ -12,7 +12,9 @@ import 'package:ciaraos/services/daily_activity_stats.dart';
 import 'package:ciaraos/services/execution_score_calculator.dart';
 import 'package:ciaraos/services/execution_timeline_generator.dart';
 import 'package:ciaraos/services/insight_generator.dart';
+import 'package:ciaraos/services/system_reflection_generator.dart';
 import 'package:ciaraos/services/weekly_narrative_generator.dart';
+import 'package:ciaraos/utils/review_stats_utils.dart';
 
 /// Orchestrates Executive Debrief data for the review screen.
 class WeeklyReviewService {
@@ -48,6 +50,12 @@ class WeeklyReviewService {
       ...weekTasks.map((task) => task.id),
       ...completedTasks.map((task) => task.id),
     }.length;
+
+    final inScopeTasks = {
+      for (final task in weekTasks) task.id: task,
+      for (final task in completedTasks) task.id: task,
+    }.values.toList();
+    final startedRate = startedRateForTasks(inScopeTasks);
 
     final sessionFocusSeconds =
         sessions.fold<int>(0, (sum, s) => sum + s.durationSeconds);
@@ -90,6 +98,7 @@ class WeeklyReviewService {
       weekOf: monday,
       tasksCompleted: completedTasks.length,
       tasksInScope: tasksInScope,
+      startedRate: startedRate,
       deepWorkSeconds: deepWorkSeconds,
       focusSessionCount: sessions.length,
       planningAccuracy: planningAccuracy,
@@ -124,6 +133,11 @@ class WeeklyReviewService {
       insights: insights,
     );
 
+    final reflectionBullets = SystemReflectionGenerator.generate(
+      metrics: metrics,
+      insights: insights,
+    );
+
     final suggestedPriorities = await suggestPriorities();
 
     return WeeklyDebrief(
@@ -133,6 +147,8 @@ class WeeklyReviewService {
       hasPriorWeekData: hasPriorWeekData,
       insights: insights,
       narrative: narrative,
+      scoreDescription: ExecutionScoreCalculator.describeScore(scoreResult.score),
+      reflectionBullets: reflectionBullets,
       suggestedPriorities: suggestedPriorities,
     );
   }
@@ -184,6 +200,10 @@ class WeeklyReviewService {
       weekOf: monday,
       tasksCompleted: completedTasks.length,
       tasksInScope: tasksInScope,
+      startedRate: startedRateForTasks({
+        for (final task in weekTasks) task.id: task,
+        for (final task in completedTasks) task.id: task,
+      }.values.toList()),
       deepWorkSeconds: sessionFocusSeconds > persistedFocus
           ? sessionFocusSeconds
           : persistedFocus,

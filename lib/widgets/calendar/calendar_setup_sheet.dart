@@ -36,13 +36,11 @@ class _CalendarSetupSheetState extends ConsumerState<CalendarSetupSheet> {
   bool _connecting = false;
   bool _awaitingBrowser = false;
   bool _disconnecting = false;
-  bool _showSetup = false;
 
   Future<void> _connect() async {
     setState(() {
       _connecting = true;
       _awaitingBrowser = false;
-      _showSetup = false;
     });
 
     final authUrl = await ref.read(calendarServiceProvider).getAuthUrl();
@@ -51,15 +49,11 @@ class _CalendarSetupSheetState extends ConsumerState<CalendarSetupSheet> {
     }
 
     if (authUrl == null) {
-      setState(() {
-        _connecting = false;
-        _showSetup = true;
-      });
+      setState(() => _connecting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Google OAuth is not configured on the backend. '
-            'Add credentials to .env first (see setup steps).',
+            'Calendar connection is not available right now. Try again later.',
           ),
         ),
       );
@@ -188,100 +182,6 @@ class _CalendarSetupSheetState extends ConsumerState<CalendarSetupSheet> {
   }
 
   Widget _buildConnectFlow(ColorScheme colorScheme) {
-    if (_showSetup) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Backend setup required',
-            style: AppTypography.headingLarge.copyWith(
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const _SetupStep(
-            number: '1',
-            text: 'Go to console.cloud.google.com → APIs & Services → Credentials',
-          ),
-          const _SetupStep(
-            number: '2',
-            text:
-                'Create OAuth client ID → Web application. '
-                'Add redirect URI: http://localhost:8001/auth/google/callback',
-          ),
-          const _SetupStep(
-            number: '3',
-            text:
-                'Enable Google Calendar API for the project '
-                '(APIs & Services → Library)',
-          ),
-          const _SetupStep(
-            number: '4',
-            text:
-                'Copy Client ID and Client Secret into ciara_os_backend/.env',
-          ),
-          const _SetupStep(
-            number: '5',
-            text: 'Restart the backend, then tap Connect again',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            child: Text(
-              'GOOGLE_CLIENT_ID=....apps.googleusercontent.com\n'
-              'GOOGLE_CLIENT_SECRET=GOCSPX-...\n'
-              'GOOGLE_REDIRECT_URI=http://localhost:8001/auth/google/callback',
-              style: AppTypography.labelSmall.copyWith(
-                fontFamily: 'monospace',
-                color: colorScheme.onSurfaceVariant,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          FilledButton(
-            onPressed: _connecting ? null : _connect,
-            child: const Text('Try Connect again'),
-          ),
-        ],
-      );
-    }
-
-    return _ConnectBody(
-      connecting: _connecting,
-      awaitingBrowser: _awaitingBrowser,
-      onConnect: _connect,
-      onDone: _confirmConnected,
-      onShowSetup: () => setState(() => _showSetup = true),
-    );
-  }
-}
-
-class _ConnectBody extends StatelessWidget {
-  const _ConnectBody({
-    required this.connecting,
-    required this.awaitingBrowser,
-    required this.onConnect,
-    required this.onDone,
-    required this.onShowSetup,
-  });
-
-  final bool connecting;
-  final bool awaitingBrowser;
-  final VoidCallback onConnect;
-  final VoidCallback onDone;
-  final VoidCallback onShowSetup;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +201,7 @@ class _ConnectBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        if (awaitingBrowser) ...[
+        if (_awaitingBrowser) ...[
           Text(
             'Complete authorization in your browser, then tap Done.',
             style: AppTypography.bodyMedium.copyWith(
@@ -310,13 +210,13 @@ class _ConnectBody extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           FilledButton(
-            onPressed: onDone,
+            onPressed: _confirmConnected,
             child: const Text('Done'),
           ),
         ] else ...[
           FilledButton(
-            onPressed: connecting ? null : onConnect,
-            child: connecting
+            onPressed: _connecting ? null : _connect,
+            child: _connecting
                 ? const SizedBox(
                     width: 18,
                     height: 18,
@@ -324,50 +224,8 @@ class _ConnectBody extends StatelessWidget {
                   )
                 : const Text('Connect →'),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          TextButton(
-            onPressed: onShowSetup,
-            child: const Text('Setup instructions'),
-          ),
         ],
       ],
-    );
-  }
-}
-
-class _SetupStep extends StatelessWidget {
-  const _SetupStep({required this.number, required this.text});
-
-  final String number;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$number.',
-            style: AppTypography.bodyMedium.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTypography.bodyMedium.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

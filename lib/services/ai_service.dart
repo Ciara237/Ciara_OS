@@ -41,22 +41,17 @@ class AiFetchResult {
     String message;
 
     if (statusCode == 500 && lowerBody.contains('groq_api_key')) {
-      message =
-          'Backend is running but GROQ_API_KEY is not set. Add it to ciara_os_backend/.env.';
+      message = 'AI features are not available right now. Try again later.';
     } else if (lowerBody.contains('invalid api key') ||
         lowerBody.contains('invalid_api_key')) {
-      message =
-          'Backend is running but Groq rejected the API key. Update GROQ_API_KEY in ciara_os_backend/.env.';
+      message = 'AI features could not authenticate. Try again later.';
     } else if (statusCode == 502 &&
         lowerBody.contains('invalid_ai_response')) {
-      message =
-          'Backend reached Groq but the response was invalid. Try again.';
+      message = 'The AI response was invalid. Try again.';
     } else if (statusCode == 502) {
-      message =
-          'Backend returned an AI error ($statusCode). Check the backend terminal logs.';
+      message = 'AI features are temporarily unavailable. Try again later.';
     } else {
-      message =
-          'Backend error ($statusCode). Check the backend terminal logs.';
+      message = 'Something went wrong. Try again later.';
     }
 
     return AiFetchResult._(
@@ -67,8 +62,7 @@ class AiFetchResult {
 
   factory AiFetchResult.parseFailure() {
     return const AiFetchResult._(
-      errorMessage:
-          'Backend responded but the brief could not be parsed. Try again.',
+      errorMessage: 'The brief could not be loaded. Try again.',
       reachedBackend: true,
     );
   }
@@ -104,10 +98,9 @@ class AiService {
         statusCode: response.statusCode,
         body: response.body,
       );
-    } on Exception catch (error) {
+    } on Exception catch (_) {
       return AiFetchResult.connectionFailure(
-        'Could not reach AI backend at $_baseUrl. '
-        'Is it running? (${error.runtimeType})',
+        'Could not generate your brief. Check your connection and try again.',
       );
     }
   }

@@ -90,7 +90,7 @@ class _CalendarStripState extends ConsumerState<CalendarStrip> {
                 ),
                 child: Text(
                   '+ Schedule',
-                  style: AppTypography.labelSmall.copyWith(
+                  style: AppTypography.labelLarge.copyWith(
                     color: colorScheme.primary,
                   ),
                 ),
@@ -104,29 +104,11 @@ class _CalendarStripState extends ConsumerState<CalendarStrip> {
               child: LinearProgressIndicator(minHeight: 2),
             )
           else if (todayEvents.isEmpty)
-            Row(
-              children: [
-                Text(
-                  'No events today. ',
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => showFocusBlockSchedulerSheet(context, ref),
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    '+ Schedule Focus Block',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ],
+            Text(
+              'No events today.',
+              style: AppTypography.bodyMedium.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             )
           else ...[
             for (final event in todayEvents.take(3))

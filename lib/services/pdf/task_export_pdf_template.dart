@@ -80,7 +80,6 @@ class TaskExportPdfTemplate {
         tasks.where((task) => task.status == TaskStatus.inProgress).length;
     final stuck =
         tasks.where((task) => task.status == TaskStatus.stuck).length;
-    final dateFormat = DateFormat('MMM dd').format;
 
     return [
       pw.Container(
@@ -125,67 +124,15 @@ class TaskExportPdfTemplate {
         ),
       ),
       pw.SizedBox(height: 6),
-      pw.Table(
-        columnWidths: {
-          0: const pw.FlexColumnWidth(2.8),
-          1: const pw.FlexColumnWidth(1.1),
-          2: const pw.FlexColumnWidth(1.1),
-          3: const pw.FlexColumnWidth(1),
-        },
-        children: [
-          pw.TableRow(
-            decoration: pw.BoxDecoration(color: _palette.summaryBg),
-            children: [
-              _headerCell('TASK'),
-              _headerCell('PRIORITY'),
-              _headerCell('STATUS'),
-              _headerCell('DEADLINE'),
-            ],
+      _taskTableHeader(),
+      ...tasks.asMap().entries.map(
+            (entry) => _taskRow(
+              task: entry.value,
+              shaded: entry.key.isOdd,
+            ),
           ),
-          ...tasks.asMap().entries.map((entry) {
-            final task = entry.value;
-            final bg =
-                entry.key.isOdd ? _palette.rowAlt : _palette.bg;
-            final deadline = task.deadline == null
-                ? '-'
-                : dateFormat(task.deadline!).toUpperCase();
-            final isOverdue = task.deadline != null &&
-                task.deadline!.isBefore(DateTime.now()) &&
-                task.status != TaskStatus.done;
-
-            return pw.TableRow(
-              decoration: pw.BoxDecoration(color: bg),
-              children: [
-                _dataCell(
-                  task.title,
-                  _palette.onSurface,
-                  bold: true,
-                ),
-                _dataCell(
-                  PdfTokens.priorityLabel(task.priority),
-                  PdfTokens.priorityColor(task.priority),
-                ),
-                _dataCell(
-                  PdfTokens.statusLabel(task.status),
-                  PdfTokens.statusColor(
-                    task.status,
-                    neutral: _palette.onSurfaceMuted,
-                  ),
-                  bold: task.status == TaskStatus.stuck,
-                ),
-                _dataCell(
-                  isOverdue ? 'OVERDUE' : deadline,
-                  isOverdue ? PdfTokens.red : _palette.onSurfaceMuted,
-                  bold: isOverdue,
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
       pw.SizedBox(height: 4),
       pw.Container(
-        width: double.infinity,
         padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         color: _palette.summaryBg,
         child: pw.Text(
@@ -200,6 +147,82 @@ class TaskExportPdfTemplate {
       ),
       pw.SizedBox(height: 20),
     ];
+  }
+
+  pw.Widget _taskTableHeader() {
+    return pw.Container(
+      color: _palette.summaryBg,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: pw.Row(
+        children: [
+          pw.Expanded(
+            flex: 28,
+            child: _headerCell('TASK'),
+          ),
+          pw.Expanded(flex: 11, child: _headerCell('PRIORITY')),
+          pw.Expanded(flex: 11, child: _headerCell('STATUS')),
+          pw.Expanded(flex: 10, child: _headerCell('DEADLINE')),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _taskRow({
+    required Task task,
+    required bool shaded,
+  }) {
+    final dateFormat = DateFormat('MMM dd').format;
+    final deadline = task.deadline == null
+        ? '-'
+        : dateFormat(task.deadline!).toUpperCase();
+    final isOverdue = task.deadline != null &&
+        task.deadline!.isBefore(DateTime.now()) &&
+        task.status != TaskStatus.done;
+    final bg = shaded ? _palette.rowAlt : _palette.bg;
+
+    return pw.Container(
+      color: bg,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            flex: 28,
+            child: _dataCell(
+              task.title,
+              _palette.onSurface,
+              bold: true,
+            ),
+          ),
+          pw.Expanded(
+            flex: 11,
+            child: _dataCell(
+              PdfTokens.priorityLabel(task.priority),
+              PdfTokens.priorityColor(task.priority),
+            ),
+          ),
+          pw.Expanded(
+            flex: 11,
+            child: _dataCell(
+              PdfTokens.statusLabel(task.status),
+              PdfTokens.statusColor(
+                task.status,
+                neutral: _palette.onSurfaceMuted,
+              ),
+              bold: task.status == TaskStatus.stuck,
+            ),
+          ),
+          pw.Expanded(
+            flex: 10,
+            child: _dataCell(
+              isOverdue ? 'OVERDUE' : deadline,
+              isOverdue ? PdfTokens.red : _palette.onSurfaceMuted,
+              bold: isOverdue,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   pw.Widget _header(String periodLabel) {
@@ -276,15 +299,12 @@ class TaskExportPdfTemplate {
   }
 
   pw.Widget _headerCell(String text) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(
-        PdfTokens.sanitize(text),
-        style: pw.TextStyle(
-          font: PdfTokens.monoBold,
-          fontSize: 8,
-          color: _palette.onSurfaceMuted,
-        ),
+    return pw.Text(
+      PdfTokens.sanitize(text),
+      style: pw.TextStyle(
+        font: PdfTokens.monoBold,
+        fontSize: 8,
+        color: _palette.onSurfaceMuted,
       ),
     );
   }
@@ -294,15 +314,12 @@ class TaskExportPdfTemplate {
     PdfColor color, {
     bool bold = false,
   }) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(
-        PdfTokens.sanitize(text),
-        style: pw.TextStyle(
-          font: bold ? PdfTokens.bodyBold : PdfTokens.bodyFont,
-          fontSize: 9,
-          color: color,
-        ),
+    return pw.Text(
+      PdfTokens.sanitize(text),
+      style: pw.TextStyle(
+        font: bold ? PdfTokens.bodyBold : PdfTokens.bodyFont,
+        fontSize: 9,
+        color: color,
       ),
     );
   }

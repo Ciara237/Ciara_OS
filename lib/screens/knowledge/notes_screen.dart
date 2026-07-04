@@ -166,9 +166,8 @@ class _NotionSyncSection extends ConsumerWidget {
 class _NotionSetupCard extends StatelessWidget {
   const _NotionSetupCard({
     this.message =
-        'Connect Notion to sync your pages here. '
-        'Add NOTION_TOKEN to the backend .env file and share pages '
-        'with the Ciara OS integration.',
+        'Connect Notion to sync your pages here. Share pages with the '
+        'Ciara OS integration via page → ... → Connections.',
   });
 
   final String message;
@@ -206,23 +205,6 @@ class _NotionSetupCard extends StatelessWidget {
             message,
             style: AppTypography.bodyMedium.copyWith(
               color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            child: Text(
-              'NOTION_TOKEN=your_notion_integration_token',
-              style: AppTypography.labelSmall.copyWith(
-                fontFamily: 'monospace',
-                color: colorScheme.onSurfaceVariant,
-                height: 1.5,
-              ),
             ),
           ),
         ],

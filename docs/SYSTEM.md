@@ -110,10 +110,10 @@ flowchart TD
   end
 
   subgraph weekly [Weekly loop — Review screen]
-    G[Observe week metrics] --> H[Execution Score + Timeline]
-    H --> I[Reflect: well / slowed / improve]
-    I --> J[Finalize Debrief]
-    J --> K[Next week priorities]
+    G[Observe week metrics] --> H[Execution Score + 2×2 metrics]
+    H --> I[System Reflection bullets]
+    I --> J[Reflect: well / slowed / improve]
+    J --> K[Finalize Debrief + next priorities]
   end
 
   daily --> weekly
@@ -373,10 +373,12 @@ Each row is one deep work session bound to exactly one task. Only one row may ha
 |-------|------|-------|
 | `id` | int | PK |
 | `weekOf` | DateTime | Monday of review week |
-| `whatWorked` / `whatFailed` / `improvementForNextWeek` | text? | Reflection fields |
+| `whatWorked` / `whatFailed` / `improvementForNextWeek` | text? | Reflection fields (UI maps `whatFailed` → "What slowed you down?") |
 | `nextActions` | text? | JSON next-week priorities |
+| `startedRate` | real? | Week started-rate at finalize |
+| `totalTasks` / `startedTasks` | int | In-scope count and completed count at finalize |
 | `executionScore` | real? | Weighted score at finalize |
-| `weeklyNarrative` | text? | Generated paragraph |
+| `weeklyNarrative` | text? | Generated paragraph (export / archive) |
 | `insightsJson` | text? | Deterministic insights snapshot |
 | `locked` | bool | Finalized debrief |
 | `createdAt` / `updatedAt` | DateTime | |
@@ -443,7 +445,7 @@ Ciara OS tracks **execution quality**, not just elapsed time.
 | Project time allocation | Days | Yes | Milestone math |
 | Focus uptime (daily) | Seconds | SharedPreferences | Performance Snapshot |
 | Daily streak | Days | SharedPreferences | Performance Snapshot |
-| Weekly started-rate | % | Computed | Review aggregate |
+| Weekly started-rate | % | Computed | Review metrics grid (`startedRate` on in-scope week tasks) |
 
 ### Deep Work Engine
 
@@ -464,16 +466,21 @@ Ciara OS tracks **execution quality**, not just elapsed time.
 ### Performance Snapshot (Today)
 
 **Provider:** `todayPerformanceProvider`  
-**UI:** `PerformanceSnapshotCard` in `TodaySidebar`
+**UI:** `PerformanceSnapshotCard` in `TodaySidebar`  
+**Trend model:** `models/performance_metric_trend.dart`
 
-| Tile | Logic |
-|------|-------|
-| **Completed** | `completedToday / totalToday` — see below |
-| **Deep work** | Persisted daily seconds + unflushed active session |
-| **Sessions** | Completed sessions today (+ active if any) |
-| **Focus quality** | Mean quality score of today's sessions |
-| **Accuracy** | Mean `planningAccuracy` of day's task set |
-| **Streak** | Consecutive active days |
+Compact **2×3 grid** (Stitch redesign). Each tile: icon + ALL-CAPS label, large value, trend badge (lime = positive, orange = negative, muted = flat/`Stable`).
+
+| Tile | Label | Value | Trend vs yesterday |
+|------|-------|-------|-------------------|
+| **Completed** | `COMPLETED` | `completedToday / totalToday` | Completion-rate percentage-point change |
+| **Deep work** | `UPTIME` | `formatFocusUptime(focusSeconds)` | Absolute hours delta (`+0.8h`) |
+| **Sessions** | `SESSIONS` | Completed sessions today (+ active) | Absolute count delta or `Stable` |
+| **Focus quality** | `QUALITY` | `Deep` / `Good` / `Okay` / `Mixed` | Relative % change on mean quality score |
+| **Accuracy** | `ACCURACY` | Mean `planningAccuracy` of day set | Percentage-point change |
+| **Streak** | `STREAK` | `{n}d` | `+Nd` when up (lime only when positive); `Stable` when flat |
+
+**Streak trend:** lime green badge only when the streak count increased; otherwise muted `Stable`.
 
 **Day task set** (`tasksForPerformanceDay` in `task_filter_utils.dart`):
 
@@ -490,6 +497,16 @@ This keeps `2/3` correct after marking tasks done (they leave the list but still
 
 The **Executive Brief** is a morning AI card on the Today screen. It sends a structured snapshot of your execution context to a local FastAPI backend, which calls **Groq** (`llama-3.3-70b-versatile`) and returns a focused mission — not motivational fluff.
 
+**Loaded card layout** (Stitch redesign):
+
+- `EXECUTIVE BRIEFING` label + **Today's Mission** heading  
+- Day progress bar (`ExecutiveBriefContextService` — completed/total for today's performance-day set)  
+- Schedule pace status (`ahead` / `on track` / `behind`) with bold inline markup  
+- AI mission body (greeting, risk, recommendation)  
+- Recommendation box with priority score pill and play icon  
+
+**Rule-based day context** (no LLM): `ExecutiveBriefContextService` computes progress, schedule pace (8:00–18:00 work window), dynamic status copy, and optional next calendar event hint. Used alongside the Groq response in `ExecutiveBriefCard`.
+
 **User flow:**
 
 1. Open Today → see **Executive Brief** above **TODAY'S FOCUS PLAN**  
@@ -503,6 +520,7 @@ The **Executive Brief** is a morning AI card on the Today screen. It sends a str
 | File | Role |
 |------|------|
 | `widgets/today/executive_brief_card.dart` | UI: empty / loading / loaded / error / collapsed |
+| `services/executive_brief_context_service.dart` | Day progress, schedule pace, status message |
 | `services/ai_context_builder.dart` | Builds JSON payload from local providers |
 | `services/ai_service.dart` | HTTP client, `AiFetchResult` error mapping |
 | `models/executive_brief.dart` | Typed response (`ExecutiveBrief`, mission, risk) |
@@ -589,10 +607,13 @@ uvicorn main:app --reload --port 8001
 | Feature | Engine | When |
 |---------|--------|------|
 | Executive Brief | Groq LLM | Daily, on demand |
+| Executive Brief day context | `ExecutiveBriefContextService` | Daily, rule-based |
 | Execution Score | `ExecutionScoreCalculator` | Weekly Review |
-| Timeline quality | `ExecutionTimelineGenerator` | Weekly Review |
+| Score description | `ExecutionScoreCalculator.describeScore()` | Weekly Review |
+| Timeline quality | `ExecutionTimelineGenerator` | Weekly Review (data layer) |
 | Insights | `InsightGenerator` | Weekly Review |
-| Weekly narrative | `WeeklyNarrativeGenerator` | Weekly Review |
+| System reflection bullets | `SystemReflectionGenerator` | Weekly Review UI |
+| Weekly narrative | `WeeklyNarrativeGenerator` | PDF export + persisted review |
 
 Review generators remain deterministic and swappable; the Brief is the first live LLM integration.
 
@@ -652,7 +673,7 @@ TodayHeader
 |-------|-----|
 | Not loaded | Label + **Generate Today's Mission** |
 | Loading | Spinner + "Analyzing your execution context…" |
-| Loaded | Full brief; refresh + collapse |
+| Loaded | Progress bar, schedule status, mission body, recommendation box with priority pill |
 | Collapsed | Label + mission title one line + expand |
 | Error | Specific message + RETRY |
 
@@ -666,7 +687,7 @@ TodayHeader
 **TodaySidebar**
 
 1. `DeepWorkCard` — active session UI  
-2. `PerformanceSnapshotCard` — 2×3 metrics grid  
+2. `PerformanceSnapshotCard` — 2×3 compact metrics grid with day-over-day trends  
 3. `BuilderModeCard` — builder-domain today tasks  
 
 ---
@@ -693,24 +714,57 @@ Application pipeline by stage. `OpportunityCard` uses `IntrinsicHeight` for list
 
 ### 5. Review — `/review`
 
-**Executive Debrief** — weekly loop closure.
+**Executive Debrief** — weekly loop closure. App chrome (`TodayHeader`, bottom nav) is unchanged; the debrief block below is the Stitch redesign.
 
-**Header structure** (`ReviewScreenHeader`):
+**Layout (top → bottom):**
+
+```
+ReviewScreenHeader          EXECUTIVE DEBRIEF + Week N Review + date range + actions
+ExecutionScoreCard          Ring %, SYSTEM_AUTH tag, score description
+ReviewMetricsGrid           2×2: STARTED RATE · TASKS DONE · FOCUS HRS · ACCURACY
+SystemReflectionCard        Three bulleted insights + LOG_END footer
+View Full Analytics →       Link to /analytics/trends
+[reflection cards × 3]      What went well / slowed / improve (unchanged)
+NextActionsChecklist        Suggested + manual next-week priorities
+```
+
+**Header** (`ReviewScreenHeader`):
 
 ```
 EXECUTIVE DEBRIEF
-Week 27 • June 29 – July 5, 2026
-Strategic performance analysis and system recalibration.
+Week 27 Review
+June 29 – July 5, 2026
+[Export Report]  [Finalize Review]
 ```
 
-Week number and date range derive from `mondayOfWeek(DateTime.now())` via `reviewWeekHeaderLabel()` in `review_stats_utils.dart`. The header sits close to `TodayHeader` with compact top padding.
+Week number and range derive from `mondayOfWeek(DateTime.now())` via `reviewWeekTitleLabel()` and `reviewWeekRangeLabel()` in `review_stats_utils.dart`.
 
-- Execution Score (weighted formula)  
-- Timeline (Mon–Sun quality bars)  
-- Weekly narrative + insights  
-- Reflection cards × 3  
-- Next week priorities  
-- Finalize → locked `WeeklyReview`  
+**Execution Score card** (`ExecutionScoreCard`):
+
+- Circular progress ring with centered `%`  
+- `SYSTEM_AUTH: 0x…` — deterministic hex from ISO week + year  
+- Title **Execution Score** + banded description from `ExecutionScoreCalculator.describeScore()`  
+
+**Weighted formula** (`ExecutionScoreCalculator`): task completion 25% · deep-work consistency 25% · planning accuracy 20% · focus quality 20% · streak 10%.
+
+**Metrics grid** (`ReviewMetricsGrid`):
+
+| Tile | Value |
+|------|-------|
+| **STARTED RATE** | `%` of in-scope week tasks with `started == true` |
+| **TASKS DONE** | `tasksCompleted / tasksInScope` |
+| **FOCUS HRS** | `formatFocusUptime(deepWorkSeconds)` |
+| **ACCURACY** | Mean `planningAccuracy` of week's completed tasks |
+
+**System Reflection** (`SystemReflectionCard` + `SystemReflectionGenerator`):
+
+1. Week summary — tasks completed, deep work duration, planning accuracy, strongest execution day  
+2. Primary insight — prefers morning productivity lift; falls back to first `InsightGenerator` result  
+3. Focus recommendation — biggest win / completion gap / context-switch advice + domain skew when one domain ≥ 50% of completions  
+
+Bullets support bold and italic segments (`ReflectionBullet` / `ReflectionSegment`). Footer: `[LOG_END:MM-dd-yyyy]` and `_CURSOR_ACTIVE`.
+
+**Finalize:** Requires at least one reflection field filled. Persists `WeeklyReview` with correct `startedRate`, narrative, insights, and `locked: true`. **Export Report** opens PDF or CSV export sheet (weekly review PDF + week tasks CSV).
 
 **Provider:** `weeklyDebriefProvider` → `WeeklyReviewService.buildDebrief()`
 
@@ -725,7 +779,7 @@ Week number and date range derive from `mondayOfWeek(DateTime.now())` via `revie
 
 ### Profile — `/profile`
 
-Identity card (tagline editable), domain breakdown, week stats, GitHub link, theme-aware styling.
+Identity card (tagline editable), domain breakdown, **tasks completed this week** (`weekCompletedTasksProvider`), GitHub link, theme-aware styling.
 
 ### Settings — `/settings`
 
@@ -876,7 +930,7 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 
 | Feature | Current state |
 |---------|---------------|
-| Export Report (Review) | Snackbar stub |
+| Export Report (Review) | **Live** — PDF weekly review + CSV week tasks via export sheet |
 | Notifications | Toggle saved; no delivery |
 | Cloud sync / auth | Not planned for v1 |
 | Executive Brief | **Live** — requires local backend + Groq key |
@@ -930,7 +984,7 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 |------|------|
 | `executive_brief_card.dart` | AI morning brief card |
 | `today_task_list_section.dart` | Focus plan task groups |
-| `performance_snapshot_card.dart` | Sidebar metrics |
+| `performance_snapshot_card.dart` | Sidebar metrics (2×3 compact tiles + trends) |
 | `deep_work_card.dart` | Active session (via `widgets/deep_work/`) |
 | `builder_mode_card.dart` | Builder-domain today tasks |
 | `today_action_row.dart` | Filter + New Task |
@@ -938,17 +992,31 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 | `today_header.dart` | App chrome: avatar (drawer), calendar, daily brief |
 | `today_filter_sheet.dart` | Today-specific filters |
 
+### Review widgets
+
+| File | Role |
+|------|------|
+| `review_screen_header.dart` | Executive Debrief title, week/date, export + finalize actions |
+| `execution_score_card.dart` | Circular score ring + SYSTEM_AUTH + description |
+| `review_metrics_grid.dart` | 2×2 started rate / tasks / focus / accuracy |
+| `system_reflection_card.dart` | Bulleted system reflection + LOG_END footer |
+| `reflection_card.dart` | Manual reflection text fields |
+| `next_actions_checklist.dart` | Next-week priority checklist |
+| `review_card.dart` | Shared debrief surface container |
+
 ### AI & services
 
 | File | Role |
 |------|------|
 | `services/ai_service.dart` | HTTP client + error mapping |
 | `services/ai_context_builder.dart` | Brief request payload |
+| `services/executive_brief_context_service.dart` | Day progress + schedule pace for brief card |
 | `services/weekly_review_service.dart` | Debrief orchestration |
-| `services/execution_score_calculator.dart` | Weighted Execution Score |
+| `services/execution_score_calculator.dart` | Weighted Execution Score + `describeScore()` |
 | `services/execution_timeline_generator.dart` | Daily quality bars |
 | `services/insight_generator.dart` | Weekly insights |
-| `services/weekly_narrative_generator.dart` | Template narrative |
+| `services/system_reflection_generator.dart` | Structured reflection bullets |
+| `services/weekly_narrative_generator.dart` | Template narrative (export / persistence) |
 | `services/daily_brief_state_service.dart` | Daily Brief gate + morning flow |
 | `services/task_completion_service.dart` | Centralized mark-done + planning accuracy |
 | `services/planning_accuracy_service.dart` | Accuracy analytics computation |
@@ -976,9 +1044,10 @@ Executive Brief + AI client: `feature/ai-executive-brief`
 |------|------|
 | `utils/task_filter_utils.dart` | Filters, `taskCompletedToday`, `tasksForPerformanceDay` |
 | `utils/deep_work_utils.dart` | Goal constants, planning accuracy |
-| `utils/review_stats_utils.dart` | Week boundaries, ISO week labels, started rates |
-| `widgets/review/review_screen_header.dart` | Executive Debrief title + week/date range |
+| `utils/review_stats_utils.dart` | Week boundaries, ISO week labels, `startedRateForTasks` |
+| `models/performance_metric_trend.dart` | Snapshot trend labels and direction |
+| `models/reflection_bullet.dart` | Rich-text segments for system reflection |
 
 ---
 
-*Last updated: schema v10, header avatar/calendar/daily-brief layout, Google Calendar + Notion integrations, local security manual logs, planning accuracy via markTaskDone, lead quality on opportunity create, productivity trends N/4 reviews progress.*
+*Last updated: Performance Snapshot compact tiles + day-over-day trends; Executive Brief Stitch layout + `ExecutiveBriefContextService`; Review debrief redesign (execution score ring, 2×2 metrics, system reflection bullets); profile week completed count; Review PDF/CSV export live.*

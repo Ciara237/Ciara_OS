@@ -378,19 +378,27 @@ class _HtbThresholdNotMet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backendDown = !probe.backendHealthy;
+    final serviceUnreachable =
+        probe.htb == SecurityEndpointAvailability.backendUnreachable;
     final invalidCreds =
         probe.htb == SecurityEndpointAvailability.invalidCredentials;
-    final errorMessage = backendDown
-        ? 'CRITICAL: Backend unreachable at localhost:8001'
+    final notConfigured =
+        probe.htb == SecurityEndpointAvailability.notConfigured;
+    final errorMessage = serviceUnreachable
+        ? 'Connection unavailable'
         : invalidCreds
-            ? 'CRITICAL: Invalid HackTheBox API key'
-            : 'CRITICAL: HTB_API_KEY not configured';
-    final helpMessage = backendDown
-        ? 'Start the Ciara OS backend (uvicorn) before syncing HackTheBox data.'
+            ? 'Authentication failed'
+            : notConfigured
+                ? 'Integration not connected'
+                : 'Could not load HackTheBox data';
+    final helpMessage = serviceUnreachable
+        ? 'Ciara OS could not reach the HackTheBox integration. '
+            'Check your connection and try again.'
         : invalidCreds
-            ? 'Regenerate your app token at app.hackthebox.com and update HTB_API_KEY in the backend .env.'
-            : 'Add your HackTheBox API key to the backend .env file to sync your profile, owned machines, and rank.';
+            ? 'Your HackTheBox credentials were rejected. '
+                'Verify your account access and try again.'
+            : 'Connect your HackTheBox account to sync machines, rank, and activity. '
+                'You can also log practice manually below.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -400,9 +408,8 @@ class _HtbThresholdNotMet extends StatelessWidget {
           initMessage: 'Initializing connection to HackTheBox API…',
           errorMessage: errorMessage,
           helpMessage: helpMessage,
-          envLines: const ['HTB_API_KEY=your_key_here'],
           onLogManual: onLogManual,
-          onSync: backendDown ? onSync : null,
+          onSync: onSync,
         ),
         const SizedBox(height: AppSpacing.lg),
         Opacity(
@@ -629,19 +636,27 @@ class _H1ThresholdNotMet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backendDown = !probe.backendHealthy;
+    final serviceUnreachable =
+        probe.h1 == SecurityEndpointAvailability.backendUnreachable;
     final invalidCreds =
         probe.h1 == SecurityEndpointAvailability.invalidCredentials;
-    final errorMessage = backendDown
-        ? 'CRITICAL: Backend unreachable at localhost:8001'
+    final notConfigured =
+        probe.h1 == SecurityEndpointAvailability.notConfigured;
+    final errorMessage = serviceUnreachable
+        ? 'Connection unavailable'
         : invalidCreds
-            ? 'CRITICAL: Invalid HackerOne API credentials'
-            : 'CRITICAL: H1_USERNAME and H1_API_TOKEN not configured';
-    final helpMessage = backendDown
-        ? 'Start the Ciara OS backend before syncing HackerOne data.'
+            ? 'Authentication failed'
+            : notConfigured
+                ? 'Integration not connected'
+                : 'Could not load HackerOne data';
+    final helpMessage = serviceUnreachable
+        ? 'Ciara OS could not reach the HackerOne integration. '
+            'Check your connection and try again.'
         : invalidCreds
-            ? 'Use your HackerOne username as H1_USERNAME and your personal API token as H1_API_TOKEN (Settings > API Token).'
-            : 'Configure H1_USERNAME and H1_API_TOKEN in the backend .env to track bounties, reports, and signal.';
+            ? 'Your HackerOne credentials were rejected. '
+                'Verify your account access and try again.'
+            : 'Connect your HackerOne account to track bounties, reports, and signal. '
+                'You can also log activity manually below.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -651,12 +666,8 @@ class _H1ThresholdNotMet extends StatelessWidget {
           initMessage: 'Validating HackerOne credentials…',
           errorMessage: errorMessage,
           helpMessage: helpMessage,
-          envLines: const [
-            'H1_USERNAME=your_hackerone_username',
-            'H1_API_TOKEN=your_hackerone_api_token',
-          ],
           onLogManual: onLogManual,
-          onSync: backendDown ? onSync : null,
+          onSync: onSync,
         ),
         const SizedBox(height: AppSpacing.lg),
         Opacity(

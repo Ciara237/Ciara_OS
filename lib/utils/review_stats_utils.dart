@@ -21,6 +21,11 @@ String reviewWeekRangeLabel(DateTime weekMonday) {
   return '${monthDay.format(weekMonday)} – ${monthDay.format(end)}, ${year.format(end)}';
 }
 
+/// Full review header week line, e.g. "Week 27 Review".
+String reviewWeekTitleLabel(DateTime weekMonday) {
+  return 'Week ${isoWeekNumber(weekMonday)} Review';
+}
+
 /// Full review header week line, e.g. "Week 27 • June 29 – July 5, 2026".
 String reviewWeekHeaderLabel(DateTime weekMonday) {
   return 'Week ${isoWeekNumber(weekMonday)} • ${reviewWeekRangeLabel(weekMonday)}';

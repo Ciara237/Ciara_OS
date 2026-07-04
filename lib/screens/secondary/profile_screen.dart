@@ -253,15 +253,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final now = DateTime.now();
-    final monday = DateTime(
-      now.year,
-      now.month,
-      now.day - (now.weekday - 1),
-    );
+    final monday = mondayOfWeek(now);
     final tasksAsync = ref.watch(allTasksProvider);
     final projectsAsync = ref.watch(allProjectsProvider);
     final opportunitiesAsync = ref.watch(allOpportunitiesProvider);
-    final weekTasksAsync = ref.watch(weekTasksProvider(monday));
+    final weekCompletedAsync = ref.watch(weekCompletedTasksProvider(monday));
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
@@ -300,26 +296,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   opportunitiesAsync: opportunitiesAsync,
                 ),
                 const SizedBox(height: AppSpacing.reviewGap),
-                weekTasksAsync.when(
+                weekCompletedAsync.when(
                   loading: () => const _SectionCard(
                     child: Center(child: CircularProgressIndicator()),
                   ),
                   error: (_, _) => const _ThisWeekCard(
-                    startedRatePercent: 0,
-                    startedCount: 0,
-                    totalCount: 0,
+                    completedCount: 0,
                   ),
-                  data: (weekTasks) {
-                    final startedCount =
-                        weekTasks.where((task) => task.started).length;
-                    final totalCount = weekTasks.length;
-                    final rate = totalCount == 0
-                        ? 0
-                        : (startedRateForTasks(weekTasks) * 100).round();
+                  data: (completedTasks) {
                     return _ThisWeekCard(
-                      startedRatePercent: rate,
-                      startedCount: startedCount,
-                      totalCount: totalCount,
+                      completedCount: completedTasks.length,
                     );
                   },
                 ),
@@ -570,21 +556,14 @@ class _StatCard extends StatelessWidget {
 
 class _ThisWeekCard extends StatelessWidget {
   const _ThisWeekCard({
-    required this.startedRatePercent,
-    required this.startedCount,
-    required this.totalCount,
+    required this.completedCount,
   });
 
-  final int startedRatePercent;
-  final int startedCount;
-  final int totalCount;
+  final int completedCount;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final progress = totalCount == 0
-        ? 0.0
-        : (startedRatePercent / 100).clamp(0.0, 1.0);
 
     return _SectionCard(
       child: Column(
@@ -599,26 +578,18 @@ class _ThisWeekCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            '$startedRatePercent%',
+            '$completedCount',
             style: AppTypography.headingLarge.copyWith(
               color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '$startedCount / $totalCount tasks started',
+            completedCount == 1
+                ? 'task completed'
+                : 'tasks completed',
             style: AppTypography.bodyMedium.copyWith(
               color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: AppSpacing.xs,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              color: colorScheme.primary,
             ),
           ),
         ],

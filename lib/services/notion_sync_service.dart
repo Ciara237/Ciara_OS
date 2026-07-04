@@ -35,7 +35,7 @@ class NotionSyncService {
   Future<NotionSyncResult> syncAll({bool force = false}) async {
     final response = await _api.fetchPages(force: force);
     if (response == null) {
-      throw StateError('Could not fetch Notion pages from backend.');
+      throw StateError('Could not fetch Notion pages.');
     }
 
     var added = 0;

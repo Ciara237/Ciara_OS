@@ -7,6 +7,7 @@ class WeeklyExecutionMetrics {
     required this.weekOf,
     required this.tasksCompleted,
     required this.tasksInScope,
+    required this.startedRate,
     required this.deepWorkSeconds,
     required this.focusSessionCount,
     required this.planningAccuracy,
@@ -23,6 +24,7 @@ class WeeklyExecutionMetrics {
   final DateTime weekOf;
   final int tasksCompleted;
   final int tasksInScope;
+  final double startedRate;
   final int deepWorkSeconds;
   final int focusSessionCount;
   final double? planningAccuracy;

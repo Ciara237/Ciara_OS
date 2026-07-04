@@ -3,6 +3,7 @@ import 'package:ciaraos/models/enums/task_status.dart';
 import 'package:ciaraos/models/opportunity.dart';
 import 'package:ciaraos/models/project.dart';
 import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/utils/review_stats_utils.dart';
 import 'package:intl/intl.dart';
 
 class AiContextBuilder {
@@ -44,11 +45,27 @@ class AiContextBuilder {
       };
     });
 
-    final weekActive =
-        weekTasks.where((task) => task.status != TaskStatus.done).toList();
-    final weekCompleted =
-        weekTasks.where((task) => task.status == TaskStatus.done).length;
-    final totalFocusSeconds = weekTasks.fold<int>(
+    final weekMonday = mondayOfWeek(now);
+    final weekEnd = weekMonday.add(const Duration(days: 7));
+
+    final weekCompleted = allTasks.where((task) {
+      if (task.status != TaskStatus.done) {
+        return false;
+      }
+      final updated = DateTime(
+        task.updatedAt.year,
+        task.updatedAt.month,
+        task.updatedAt.day,
+      );
+      return !updated.isBefore(weekMonday) && updated.isBefore(weekEnd);
+    });
+
+    final weekScope = _weekScopeTasks(
+      weekTasks: weekTasks,
+      weekCompleted: weekCompleted.toList(),
+    );
+
+    final totalFocusSeconds = weekScope.fold<int>(
       0,
       (sum, task) => sum + task.totalFocusedSeconds,
     );
@@ -71,12 +88,9 @@ class AiContextBuilder {
           .map(_taskToJson)
           .toList(),
       'this_week': {
-        'started_rate': weekActive.isEmpty
-            ? 0.0
-            : weekActive.where((task) => task.started).length /
-                weekActive.length,
-        'tasks_completed': weekCompleted,
-        'tasks_total': weekTasks.length,
+        'started_rate': startedRateForTasks(weekScope),
+        'tasks_completed': weekCompleted.length,
+        'tasks_total': weekScope.length,
         'total_focused_hours': totalFocusSeconds / 3600.0,
       },
       'active_projects': activeProjects.toList(),
@@ -98,6 +112,21 @@ class AiContextBuilder {
         'most_postponed_count': mostPostponed?.postponeCount ?? 0,
       },
     };
+  }
+
+  /// Tasks created or completed this week — same scope as weekly review metrics.
+  List<Task> _weekScopeTasks({
+    required List<Task> weekTasks,
+    required List<Task> weekCompleted,
+  }) {
+    final byId = <int, Task>{};
+    for (final task in weekTasks) {
+      byId[task.id] = task;
+    }
+    for (final task in weekCompleted) {
+      byId[task.id] = task;
+    }
+    return byId.values.toList();
   }
 
   Map<String, dynamic> _taskToJson(Task task) => {

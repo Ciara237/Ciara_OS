@@ -74,8 +74,7 @@ class _GitHubActivityScreenState extends ConsumerState<GitHubActivityScreen> {
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text(
-                        'Could not sync GitHub activity. '
-                        'Check that the backend is running.',
+                        'Could not sync GitHub activity. Try again later.',
                       ),
                     ),
                   );
@@ -230,7 +229,7 @@ class _ErrorBody extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
       child: Text(
-        'Could not reach the GitHub activity backend. Check that the server is running.',
+        'Could not load GitHub activity. Check your connection and try again.',
         textAlign: TextAlign.center,
         style: AppTypography.bodyMedium.copyWith(
           color: colorScheme.error,

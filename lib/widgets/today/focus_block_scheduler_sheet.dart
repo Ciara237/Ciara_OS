@@ -402,7 +402,7 @@ class _FocusBlockSchedulerSheetState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Could not schedule focus block. Check that the backend is running.',
+            'Could not schedule focus block. Try again later.',
           ),
         ),
       );

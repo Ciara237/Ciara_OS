@@ -1,7 +1,9 @@
 import 'package:ciaraos/models/enums/domain.dart';
-import 'package:ciaraos/models/enums/task_status.dart';
-import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/models/enums/focus_quality.dart';
+import 'package:ciaraos/models/enums/task_status.dart';
+import 'package:ciaraos/models/focus_session_record.dart';
+import 'package:ciaraos/models/performance_metric_trend.dart';
+import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/daily_stats_providers.dart';
 import 'package:ciaraos/providers/focus_session_repository_provider.dart';
 import 'package:ciaraos/providers/focus_session_provider.dart';
@@ -38,20 +40,54 @@ class TodayPerformanceSnapshot {
     required this.totalToday,
     required this.focusSeconds,
     required this.dailyStreak,
-    required this.streakLoggedToday,
     required this.sessionCountToday,
     required this.averageQualityScore,
     required this.planningAccuracy,
+    required this.completedTrend,
+    required this.focusTrend,
+    required this.sessionsTrend,
+    required this.qualityTrend,
+    required this.accuracyTrend,
+    required this.streakTrend,
   });
 
   final int completedToday;
   final int totalToday;
   final int focusSeconds;
   final int dailyStreak;
-  final bool streakLoggedToday;
   final int sessionCountToday;
   final double? averageQualityScore;
   final double? planningAccuracy;
+  final PerformanceMetricTrend completedTrend;
+  final PerformanceMetricTrend focusTrend;
+  final PerformanceMetricTrend sessionsTrend;
+  final PerformanceMetricTrend qualityTrend;
+  final PerformanceMetricTrend accuracyTrend;
+  final PerformanceMetricTrend streakTrend;
+
+  bool get streakIncreased => streakTrend.isPositive;
+}
+
+double? _averageAccuracyForTasks(List<Task> tasks) {
+  final values = tasks
+      .where((task) => task.planningAccuracy != null)
+      .map((task) => task.planningAccuracy!)
+      .toList();
+  if (values.isEmpty) {
+    return null;
+  }
+  return values.reduce((a, b) => a + b) / values.length;
+}
+
+double? _averageQualityForSessions(List<FocusSessionRecord> sessions) {
+  final scores = sessions
+      .where((session) => session.focusQuality != null)
+      .map((session) => focusQualityScore(session.focusQuality!).toDouble())
+      .toList();
+  if (scores.isEmpty) {
+    return null;
+  }
+  return scores.reduce((a, b) => a + b) / scores.length;
 }
 
 final todayPerformanceProvider =
@@ -59,47 +95,89 @@ final todayPerformanceProvider =
   ref.watch(focusSessionProvider);
   ref.watch(dailyStatsRevisionProvider);
   final now = DateTime.now();
+  final yesterday = now.subtract(const Duration(days: 1));
   final allTasks = ref.watch(allTasksProvider).value ?? const <Task>[];
   final dayTasks = tasksForPerformanceDay(allTasks, now: now);
+  final yesterdayDayTasks = tasksForPerformanceDay(allTasks, now: yesterday);
 
   final completed =
       allTasks.where((task) => taskCompletedToday(task, now: now)).length;
+  final completedYesterday =
+      allTasks.where((task) => taskCompletedToday(task, now: yesterday)).length;
+
   final persistedFocus = await DailyActivityStats.todayFocusSeconds();
   final session = ref.read(focusSessionProvider);
   final sessionFocus = session.isActive
       ? ref.read(focusSessionProvider.notifier).unflushedFocusSeconds
       : 0;
+  final focusSeconds = persistedFocus + sessionFocus;
+  final yesterdayFocus = await DailyActivityStats.focusSecondsFor(yesterday);
 
   final focusRepo = ref.read(focusSessionRepositoryProvider);
-  final todaySessions =
-      await focusRepo.getCompletedSessionsForDay(DateTime.now());
-  final qualityScores = todaySessions
-      .where((s) => s.focusQuality != null)
-      .map((s) => focusQualityScore(s.focusQuality!).toDouble())
-      .toList();
+  final todaySessions = await focusRepo.getCompletedSessionsForDay(now);
+  final yesterdaySessions =
+      await focusRepo.getCompletedSessionsForDay(yesterday);
+  final sessionCountToday =
+      todaySessions.length + (session.isActive ? 1 : 0);
 
-  final accuracyValues = dayTasks
-      .where((t) => t.planningAccuracy != null)
-      .map((t) => t.planningAccuracy!)
-      .toList();
-  double? avgAccuracy;
-  if (accuracyValues.isNotEmpty) {
-    avgAccuracy =
-        accuracyValues.reduce((a, b) => a + b) / accuracyValues.length;
+  final averageQualityScore = _averageQualityForSessions(todaySessions);
+  final yesterdayQualityScore = _averageQualityForSessions(yesterdaySessions);
+  final avgAccuracy = _averageAccuracyForTasks(dayTasks);
+  final yesterdayAccuracy = _averageAccuracyForTasks(yesterdayDayTasks);
+
+  final streakMeta = await DailyActivityStats.streakSnapshot();
+  final dailyStreak = await DailyActivityStats.dailyStreak();
+  final yesterdayStreak = streakAtEndOfYesterday(
+    currentStreak: streakMeta.streak,
+    lastActiveIso: streakMeta.lastActive,
+    now: now,
+  );
+
+  double? accuracyDelta;
+  if (avgAccuracy != null && yesterdayAccuracy != null) {
+    accuracyDelta = avgAccuracy - yesterdayAccuracy;
+  } else if (avgAccuracy != null && yesterdayAccuracy == null) {
+    accuracyDelta = avgAccuracy;
   }
+
+  double? qualityDelta;
+  if (averageQualityScore != null && yesterdayQualityScore != null) {
+    qualityDelta =
+        relativePercentChange(averageQualityScore, yesterdayQualityScore);
+  } else if (averageQualityScore != null && yesterdayQualityScore == null) {
+    qualityDelta = 100;
+  }
+
+  final focusHoursDelta = (focusSeconds - yesterdayFocus) / 3600.0;
 
   return TodayPerformanceSnapshot(
     completedToday: completed,
     totalToday: dayTasks.length,
-    focusSeconds: persistedFocus + sessionFocus,
-    dailyStreak: await DailyActivityStats.dailyStreak(),
-    streakLoggedToday: await DailyActivityStats.isTodayLogged(),
-    sessionCountToday: todaySessions.length +
-        (session.isActive ? 1 : 0),
-    averageQualityScore: qualityScores.isEmpty
-        ? null
-        : qualityScores.reduce((a, b) => a + b) / qualityScores.length,
+    focusSeconds: focusSeconds,
+    dailyStreak: dailyStreak,
+    sessionCountToday: sessionCountToday,
+    averageQualityScore: averageQualityScore,
     planningAccuracy: avgAccuracy,
+    completedTrend: PerformanceMetricTrend.fromPercentDelta(
+      ratePointChange(
+        numeratorToday: completed,
+        denominatorToday: dayTasks.length,
+        numeratorYesterday: completedYesterday,
+        denominatorYesterday: yesterdayDayTasks.length,
+      ),
+    ),
+    focusTrend: PerformanceMetricTrend.fromHoursDelta(focusHoursDelta),
+    sessionsTrend: PerformanceMetricTrend.fromAbsoluteDelta(
+      sessionCountToday - yesterdaySessions.length,
+      unit: '',
+      mode: TrendDisplayMode.absolute,
+    ),
+    qualityTrend: PerformanceMetricTrend.fromPercentDelta(qualityDelta),
+    accuracyTrend: PerformanceMetricTrend.fromPercentDelta(accuracyDelta),
+    streakTrend: PerformanceMetricTrend.fromAbsoluteDelta(
+      dailyStreak - yesterdayStreak,
+      unit: 'd',
+    ),
   );
 });
 

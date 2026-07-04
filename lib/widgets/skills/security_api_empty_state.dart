@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 const securityRed = Color(0xFFEF4444);
 
-/// Stitch terminal-style empty state when security API keys are not configured.
+/// Terminal-style empty state when a security integration is unavailable.
 class SecurityApiTerminalEmptyState extends StatelessWidget {
   const SecurityApiTerminalEmptyState({
     super.key,
@@ -12,7 +12,6 @@ class SecurityApiTerminalEmptyState extends StatelessWidget {
     required this.initMessage,
     required this.errorMessage,
     required this.helpMessage,
-    required this.envLines,
     this.onLogManual,
     this.onSync,
   });
@@ -21,7 +20,6 @@ class SecurityApiTerminalEmptyState extends StatelessWidget {
   final String initMessage;
   final String errorMessage;
   final String helpMessage;
-  final List<String> envLines;
   final VoidCallback? onLogManual;
   final VoidCallback? onSync;
 
@@ -89,42 +87,12 @@ class SecurityApiTerminalEmptyState extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        helpMessage,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                          border: Border.all(
-                            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final line in envLines)
-                              Text(
-                                line,
-                                style: AppTypography.labelSmall.copyWith(
-                                  color: colorScheme.primary,
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    helpMessage,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
                   ),
                 ),
                 if (onLogManual != null || onSync != null) ...[

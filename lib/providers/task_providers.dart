@@ -12,6 +12,7 @@ import 'package:ciaraos/services/planning_accuracy_service.dart';
 import 'package:ciaraos/services/productivity_trends_service.dart';
 import 'package:ciaraos/services/task_completion_service.dart';
 import 'package:ciaraos/utils/planning_accuracy_utils.dart';
+import 'package:ciaraos/utils/review_stats_utils.dart';
 import 'package:ciaraos/utils/task_filter_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -34,12 +35,17 @@ final taskByIdProvider = FutureProvider.family<Task?, int>((ref, id) {
 
 final weekTasksProvider = FutureProvider.family<List<Task>, DateTime>(
   (ref, weekStart) async {
-    final normalizedStart = DateTime(
-      weekStart.year,
-      weekStart.month,
-      weekStart.day,
-    );
+    final normalizedStart = mondayOfWeek(weekStart);
     return ref.read(taskRepositoryProvider).getTasksForWeek(normalizedStart);
+  },
+);
+
+final weekCompletedTasksProvider = FutureProvider.family<List<Task>, DateTime>(
+  (ref, weekStart) async {
+    final normalizedStart = mondayOfWeek(weekStart);
+    return ref
+        .read(taskRepositoryProvider)
+        .getTasksCompletedInWeek(normalizedStart);
   },
 );
 

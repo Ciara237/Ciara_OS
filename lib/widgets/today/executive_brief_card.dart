@@ -1,9 +1,11 @@
 import 'package:ciaraos/models/executive_brief.dart';
 import 'package:ciaraos/providers/ai_providers.dart';
+import 'package:ciaraos/providers/calendar_providers.dart';
 import 'package:ciaraos/providers/opportunity_providers.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/providers/task_providers.dart';
 import 'package:ciaraos/services/ai_context_builder.dart';
+import 'package:ciaraos/services/executive_brief_context_service.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/review_stats_utils.dart';
@@ -27,6 +29,15 @@ class _ExecutiveBriefCardState extends ConsumerState<ExecutiveBriefCard> {
   void initState() {
     super.initState();
     _isCollapsed = ref.read(executiveBriefProvider).value != null;
+  }
+
+  ExecutiveBriefDayContext _dayContext() {
+    final allTasks = ref.watch(allTasksProvider).value ?? const [];
+    final events = ref.watch(calendarEventsProvider).value ?? const [];
+    return ExecutiveBriefContextService().build(
+      allTasks: allTasks,
+      calendarEvents: events,
+    );
   }
 
   Future<void> _fetchBrief() async {
@@ -73,27 +84,30 @@ class _ExecutiveBriefCardState extends ConsumerState<ExecutiveBriefCard> {
     final briefAsync = ref.watch(executiveBriefProvider);
     final isLoading = briefAsync.isLoading;
     final brief = briefAsync.value;
+    final dayContext = _dayContext();
 
     return _BriefCardShell(
       colorScheme: colorScheme,
       child: isLoading
-          ? const _LoadingBriefContent()
+          ? _LoadingBriefContent(dayContext: dayContext)
           : brief != null
               ? _isCollapsed
                   ? _CollapsedBriefContent(
                       brief: brief,
+                      dayContext: dayContext,
                       onExpand: () => setState(() => _isCollapsed = false),
                       onRefresh: _fetchBrief,
                     )
                   : _LoadedBriefContent(
                       brief: brief,
+                      dayContext: dayContext,
                       onRefresh: _fetchBrief,
                       onCollapse: () => setState(() => _isCollapsed = true),
                     )
               : _fetchFailed
                   ? _ErrorBriefContent(
                       message: _errorMessage ??
-                          'Could not reach AI backend. Is the backend running?',
+                          'Could not generate your brief. Try again.',
                       onRetry: _fetchBrief,
                     )
                   : _EmptyBriefContent(onGenerate: _fetchBrief),
@@ -112,63 +126,267 @@ class _BriefCardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: AppSpacing.taskBorderWidth,
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(AppSpacing.radiusLg),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHigh,
-                borderRadius: const BorderRadius.horizontal(
-                  right: Radius.circular(AppSpacing.radiusLg),
-                ),
-                border: Border(
-                  top: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  ),
-                  right: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  ),
-                  bottom: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-              child: child,
-            ),
-          ),
-        ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.16),
+        ),
       ),
+      child: child,
     );
   }
 }
 
-class _BriefLabel extends StatelessWidget {
-  const _BriefLabel();
+class _BriefHeader extends StatelessWidget {
+  const _BriefHeader({
+    required this.onRefresh,
+    this.onCollapse,
+    this.onExpand,
+  });
+
+  final VoidCallback onRefresh;
+  final VoidCallback? onCollapse;
+  final VoidCallback? onExpand;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Text(
-      'EXECUTIVE BRIEF',
-      style: AppTypography.labelLarge.copyWith(
-        color: colorScheme.onSurfaceVariant,
-        letterSpacing: 1.5,
-        decoration: TextDecoration.none,
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'EXECUTIVE BRIEFING',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 1.4,
+                  fontSize: 10,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                "Today's Mission",
+                style: AppTypography.headingLarge.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: onRefresh,
+          icon: Icon(
+            Icons.refresh,
+            size: 20,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          tooltip: 'Refresh brief',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+        if (onCollapse != null)
+          IconButton(
+            onPressed: onCollapse,
+            icon: Icon(
+              Icons.open_in_full,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            tooltip: 'Collapse brief',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+        if (onExpand != null)
+          IconButton(
+            onPressed: onExpand,
+            icon: Icon(
+              Icons.open_in_full,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            tooltip: 'Expand brief',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+      ],
+    );
+  }
+}
+
+class _ProgressSection extends StatelessWidget {
+  const _ProgressSection({required this.dayContext});
+
+  final ExecutiveBriefDayContext dayContext;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Current Progress',
+              style: AppTypography.labelSmall.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 11,
+              ),
+            ),
+            Text(
+              '${dayContext.completedCount} / ${dayContext.totalCount} TASKS',
+              style: AppTypography.labelSmall.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: 0.8,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          child: LinearProgressIndicator(
+            value: dayContext.progress,
+            minHeight: 6,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            color: colorScheme.primary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusMessage extends StatelessWidget {
+  const _StatusMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final base = AppTypography.bodyMedium.copyWith(
+      color: colorScheme.onSurfaceVariant,
+      height: 1.5,
+    );
+    final bold = base.copyWith(
+      color: colorScheme.onSurface,
+      fontWeight: FontWeight.w700,
+    );
+
+    return Text.rich(
+      TextSpan(children: _richSpansFromMarkup(message, base, bold)),
+    );
+  }
+}
+
+class _RecommendationSection extends StatelessWidget {
+  const _RecommendationSection({required this.brief});
+
+  final ExecutiveBrief brief;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final base = AppTypography.bodyMedium.copyWith(
+      color: colorScheme.onSurface,
+      height: 1.45,
+    );
+    final bold = base.copyWith(fontWeight: FontWeight.w700);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.terminal,
+              size: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              'RECOMMENDATION',
+              style: AppTypography.labelSmall.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: 1.2,
+                fontSize: 10,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+                ),
+              ),
+              child: Text(
+                'PRIORITY SCORE: ${brief.priorityScore}',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 9,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.14),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  Icons.play_arrow_rounded,
+                  size: 18,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: _recommendationSpans(
+                      recommendation: brief.recommendation,
+                      missionTitle: brief.mission.title,
+                      baseStyle: base,
+                      boldStyle: bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -185,8 +403,23 @@ class _EmptyBriefContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _BriefLabel(),
-        const SizedBox(height: AppSpacing.md),
+        Text(
+          'EXECUTIVE BRIEFING',
+          style: AppTypography.labelSmall.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            letterSpacing: 1.4,
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          "Today's Mission",
+          style: AppTypography.headingLarge.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
         FilledButton(
           onPressed: onGenerate,
           style: FilledButton.styleFrom(
@@ -198,10 +431,9 @@ class _EmptyBriefContent extends StatelessWidget {
             ),
           ),
           child: Text(
-            "⚡ Generate Today's Mission",
+            "Generate Today's Mission",
             style: AppTypography.labelLarge.copyWith(
               color: colorScheme.onPrimary,
-              decoration: TextDecoration.none,
             ),
           ),
         ),
@@ -211,7 +443,9 @@ class _EmptyBriefContent extends StatelessWidget {
 }
 
 class _LoadingBriefContent extends StatelessWidget {
-  const _LoadingBriefContent();
+  const _LoadingBriefContent({required this.dayContext});
+
+  final ExecutiveBriefDayContext dayContext;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +454,24 @@ class _LoadingBriefContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _BriefLabel(),
+        Text(
+          'EXECUTIVE BRIEFING',
+          style: AppTypography.labelSmall.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            letterSpacing: 1.4,
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          "Today's Mission",
+          style: AppTypography.headingLarge.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        _ProgressSection(dayContext: dayContext),
         const SizedBox(height: AppSpacing.lg),
         Center(
           child: SizedBox(
@@ -239,7 +490,6 @@ class _LoadingBriefContent extends StatelessWidget {
           style: AppTypography.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
             fontStyle: FontStyle.italic,
-            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -263,13 +513,19 @@ class _ErrorBriefContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _BriefLabel(),
+        Text(
+          'EXECUTIVE BRIEFING',
+          style: AppTypography.labelSmall.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            letterSpacing: 1.4,
+            fontSize: 10,
+          ),
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(
           message,
           style: AppTypography.bodyMedium.copyWith(
             color: colorScheme.onSurfaceVariant,
-            decoration: TextDecoration.none,
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -277,13 +533,7 @@ class _ErrorBriefContent extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: onRetry,
-            child: Text(
-              'RETRY',
-              style: AppTypography.labelLarge.copyWith(
-                color: colorScheme.primary,
-                decoration: TextDecoration.none,
-              ),
-            ),
+            child: const Text('RETRY'),
           ),
         ),
       ],
@@ -294,11 +544,13 @@ class _ErrorBriefContent extends StatelessWidget {
 class _CollapsedBriefContent extends StatelessWidget {
   const _CollapsedBriefContent({
     required this.brief,
+    required this.dayContext,
     required this.onExpand,
     required this.onRefresh,
   });
 
   final ExecutiveBrief brief;
+  final ExecutiveBriefDayContext dayContext;
   final VoidCallback onExpand;
   final VoidCallback onRefresh;
 
@@ -306,38 +558,30 @@ class _CollapsedBriefContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _BriefLabel(),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Text(
-            brief.mission.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.bodyMedium.copyWith(
-              color: colorScheme.onSurface,
-              decoration: TextDecoration.none,
+        _BriefHeader(onRefresh: onRefresh, onExpand: onExpand),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                brief.mission.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
-          ),
-        ),
-        IconButton(
-          onPressed: onRefresh,
-          icon: Icon(
-            Icons.refresh,
-            size: AppSpacing.lg,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          tooltip: 'Refresh brief',
-        ),
-        IconButton(
-          onPressed: onExpand,
-          icon: Icon(
-            Icons.expand_more,
-            size: AppSpacing.lg,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          tooltip: 'Expand brief',
+            Text(
+              '${dayContext.completedCount}/${dayContext.totalCount}',
+              style: AppTypography.labelSmall.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -347,11 +591,13 @@ class _CollapsedBriefContent extends StatelessWidget {
 class _LoadedBriefContent extends StatelessWidget {
   const _LoadedBriefContent({
     required this.brief,
+    required this.dayContext,
     required this.onRefresh,
     required this.onCollapse,
   });
 
   final ExecutiveBrief brief;
+  final ExecutiveBriefDayContext dayContext;
   final VoidCallback onRefresh;
   final VoidCallback onCollapse;
 
@@ -362,131 +608,86 @@ class _LoadedBriefContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            const Expanded(child: _BriefLabel()),
-            IconButton(
-              onPressed: onRefresh,
-              icon: Icon(
-                Icons.refresh,
-                size: AppSpacing.lg,
-                color: colorScheme.onSurfaceVariant,
-              ),
-              tooltip: 'Refresh brief',
-            ),
-            IconButton(
-              onPressed: onCollapse,
-              icon: Icon(
-                Icons.expand_less,
-                size: AppSpacing.lg,
-                color: colorScheme.onSurfaceVariant,
-              ),
-              tooltip: 'Collapse brief',
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          brief.greeting,
-          style: AppTypography.bodyMedium.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            decoration: TextDecoration.none,
-          ),
-        ),
+        _BriefHeader(onRefresh: onRefresh, onCollapse: onCollapse),
         const SizedBox(height: AppSpacing.lg),
-        Text(
-          "TODAY'S MISSION",
-          style: AppTypography.labelSmall.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 1.2,
-            decoration: TextDecoration.none,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          brief.mission.title,
-          style: AppTypography.headingMedium.copyWith(
-            color: colorScheme.onSurface,
-            decoration: TextDecoration.none,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          brief.mission.reason,
-          style: AppTypography.bodyMedium.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            decoration: TextDecoration.none,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Est. ${brief.mission.estimatedMinutes} min',
-          style: AppTypography.labelSmall.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            decoration: TextDecoration.none,
-          ),
-        ),
+        _ProgressSection(dayContext: dayContext),
+        const SizedBox(height: AppSpacing.lg),
+        _StatusMessage(message: dayContext.statusMessage),
         if (brief.risk.present && brief.risk.description != null) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border(
-                left: BorderSide(
-                  color: colorScheme.tertiary,
-                  width: AppSpacing.taskBorderWidth,
-                ),
-              ),
-            ),
-            child: Text(
-              '⚠ ${brief.risk.description}',
-              style: AppTypography.bodyMedium.copyWith(
-                color: colorScheme.onSurface,
-                decoration: TextDecoration.none,
-              ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            brief.risk.description!,
+            style: AppTypography.bodyMedium.copyWith(
+              color: colorScheme.tertiary,
+              height: 1.4,
             ),
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        Text(
-          'RECOMMENDATION',
-          style: AppTypography.labelSmall.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 1.2,
-            decoration: TextDecoration.none,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          brief.recommendation,
-          style: AppTypography.bodyMedium.copyWith(
-            color: colorScheme.onSurface,
-            decoration: TextDecoration.none,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            'Priority Score: ${brief.priorityScore}/100',
+        _RecommendationSection(brief: brief),
+        if (brief.expectedOutcome.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            brief.expectedOutcome,
             style: AppTypography.labelSmall.copyWith(
-              color: colorScheme.primary,
-              decoration: TextDecoration.none,
+              color: colorScheme.onSurfaceVariant,
+              height: 1.4,
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          brief.expectedOutcome,
-          style: AppTypography.bodyMedium.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            decoration: TextDecoration.none,
-          ),
-        ),
+        ],
       ],
     );
   }
+}
+
+List<TextSpan> _richSpansFromMarkup(
+  String text,
+  TextStyle baseStyle,
+  TextStyle boldStyle,
+) {
+  final spans = <TextSpan>[];
+  final parts = text.split('**');
+
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].isEmpty) {
+      continue;
+    }
+    spans.add(
+      TextSpan(
+        text: parts[i],
+        style: i.isOdd ? boldStyle : baseStyle,
+      ),
+    );
+  }
+
+  if (spans.isEmpty) {
+    spans.add(TextSpan(text: text, style: baseStyle));
+  }
+
+  return spans;
+}
+
+List<TextSpan> _recommendationSpans({
+  required String recommendation,
+  required String missionTitle,
+  required TextStyle baseStyle,
+  required TextStyle boldStyle,
+}) {
+  if (missionTitle.isNotEmpty && recommendation.contains(missionTitle)) {
+    final parts = recommendation.split(missionTitle);
+    final spans = <TextSpan>[];
+
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        spans.add(TextSpan(text: parts[i], style: baseStyle));
+      }
+      if (i < parts.length - 1) {
+        spans.add(TextSpan(text: missionTitle, style: boldStyle));
+      }
+    }
+
+    return spans;
+  }
+
+  return [TextSpan(text: recommendation, style: baseStyle)];
 }

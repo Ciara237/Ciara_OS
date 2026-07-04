@@ -146,7 +146,7 @@ abstract final class InsightGenerator {
       description:
           'Deep work output was ${lift.round()}% higher before noon than after.',
       recommendation:
-          'Schedule demanding engineering work in morning blocks when possible.',
+          'Recalibrating schedule to front-load cognitive tasks is advised.',
       icon: Icons.wb_sunny_outlined,
       iconColorKind: InsightIconColorKind.primary,
     );
