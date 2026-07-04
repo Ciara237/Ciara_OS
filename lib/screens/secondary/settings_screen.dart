@@ -1,7 +1,11 @@
 import 'package:ciaraos/models/task.dart';
+import 'package:ciaraos/models/weekly_review.dart';
 import 'package:ciaraos/providers/csv_export_provider.dart';
+import 'package:ciaraos/providers/focus_session_repository_provider.dart';
 import 'package:ciaraos/providers/pdf_export_provider.dart';
 import 'package:ciaraos/providers/task_providers.dart';
+import 'package:ciaraos/providers/weekly_review_providers.dart';
+import 'package:ciaraos/utils/review_stats_utils.dart';
 import 'package:ciaraos/widgets/export/pdf_export_sheets.dart';
 import 'package:ciaraos/providers/calendar_providers.dart';
 import 'package:ciaraos/providers/note_providers.dart';
@@ -180,12 +184,138 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(notificationServiceProvider).scheduleDeepWorkNudge(picked);
   }
 
-  Future<void> _showExportDataSheet() {
+  Future<void> _showExportChoiceSheet() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.xl,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Export Data',
+                  style: AppTypography.headingMedium.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                ListTile(
+                  leading: const Icon(Icons.checklist_outlined),
+                  title: const Text('Export Tasks'),
+                  subtitle: const Text('All tasks as PDF or CSV'),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _showTasksExportSheet();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.rate_review_outlined),
+                  title: const Text('Export Weekly Review'),
+                  subtitle: const Text('Most recent completed review'),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _startWeeklyReviewExport();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _startWeeklyReviewExport() async {
+    final reviews =
+        await ref.read(weeklyReviewRepositoryProvider).watchAll().first;
+    WeeklyReview? lockedReview;
+    for (final review in reviews) {
+      if (review.locked) {
+        lockedReview = review;
+        break;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    if (lockedReview == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No completed reviews yet. Complete a weekly review first.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final review = lockedReview;
+    showReviewExportSheet(
+      context: context,
+      onExportPdf: () => _exportWeeklyReviewPdf(review),
+      onExportCsv: () => _exportWeeklyReviewCsv(review),
+    );
+  }
+
+  Future<void> _showTasksExportSheet() {
     return showTasksExportSheet(
       context: context,
       onExportPdf: () => _exportAllTasksPdf(),
       onExportCsv: () => _exportAllTasksCsv(),
     );
+  }
+
+  Future<void> _exportWeeklyReviewPdf(WeeklyReview review) async {
+    final brightness = Theme.of(context).brightness;
+
+    try {
+      final tasks = await ref.read(weekTasksProvider(review.weekOf).future);
+      final sessions = await ref
+          .read(focusSessionRepositoryProvider)
+          .getSessionsForWeek(review.weekOf);
+      await ref.read(pdfExportServiceProvider).exportWeeklyReview(
+            review: review,
+            tasksThisWeek: tasks,
+            sessionsThisWeek: sessions,
+            brightness: brightness,
+          );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _exportWeeklyReviewCsv(WeeklyReview review) async {
+    try {
+      final tasks = await ref.read(weekTasksProvider(review.weekOf).future);
+      await ref.read(csvExportServiceProvider).exportTasks(
+            tasks: tasks,
+            periodLabel: reviewWeekRangeLabel(review.weekOf),
+          );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $error')),
+        );
+      }
+      rethrow;
+    }
   }
 
   Future<void> _exportAllTasksPdf() async {
@@ -528,7 +658,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       _SettingsActionRow(
                         title: 'Export Data',
                         subtitle: 'Export all tasks as PDF or CSV',
-                        onTap: _showExportDataSheet,
+                        onTap: _showExportChoiceSheet,
                       ),
                       Divider(
                         height: AppSpacing.lg,

@@ -7,20 +7,18 @@ import 'package:ciaraos/models/task.dart';
 import 'package:ciaraos/providers/opportunity_providers.dart';
 import 'package:ciaraos/providers/project_providers.dart';
 import 'package:ciaraos/providers/task_providers.dart';
-import 'package:ciaraos/providers/theme_provider.dart';
 import 'package:ciaraos/providers/profile_providers.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_theme.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:ciaraos/utils/domain_icons.dart';
+import 'package:ciaraos/services/profile_preferences.dart';
 import 'package:ciaraos/utils/review_stats_utils.dart';
 import 'package:ciaraos/widgets/navigation/primary_drawer.dart';
 import 'package:ciaraos/widgets/today/today_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-const _githubUrl = 'https://github.com/Ciara237/Ciara_OS';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -47,6 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           : profile.resolvedDisplayName,
     );
     final bioController = TextEditingController(text: profile.tagline);
+    final githubController = TextEditingController(text: profile.githubUsername);
 
     final saved = await showDialog<bool>(
       context: context,
@@ -151,6 +150,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'GITHUB USERNAME',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                TextField(
+                  controller: githubController,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Ciara237',
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerLow,
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -169,6 +207,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (nameController.text.trim().isEmpty) {
                   return;
                 }
+                final github = normalizeGithubUsername(githubController.text);
+                if (!isValidGithubUsername(github)) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'GitHub username cannot contain spaces or @.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
                 Navigator.pop(dialogContext, true);
               },
               child: const Text('Save'),
@@ -183,19 +232,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           .read(profileProvider.notifier)
           .saveDisplayName(nameController.text);
       await ref.read(profileProvider.notifier).saveTagline(bioController.text);
+      await ref
+          .read(profileProvider.notifier)
+          .saveGithubUsername(githubController.text);
     }
 
     nameController.dispose();
     bioController.dispose();
+    githubController.dispose();
   }
 
-  Future<void> _setThemeMode(ThemeMode mode) async {
-    ref.read(themeModeProvider.notifier).state = mode;
-    await saveThemeMode(mode);
-  }
-
-  Future<void> _openGithub() async {
-    final uri = Uri.parse(_githubUrl);
+  Future<void> _openGithub(String username) async {
+    final uri = Uri.parse('https://github.com/$username');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -204,12 +252,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final currentMonday = mondayOfWeek(DateTime.now());
+    final now = DateTime.now();
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day - (now.weekday - 1),
+    );
     final tasksAsync = ref.watch(allTasksProvider);
     final projectsAsync = ref.watch(allProjectsProvider);
     final opportunitiesAsync = ref.watch(allOpportunitiesProvider);
-    final weekTasksAsync = ref.watch(weekTasksProvider(currentMonday));
-    final themeMode = ref.watch(themeModeProvider);
+    final weekTasksAsync = ref.watch(weekTasksProvider(monday));
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
@@ -282,12 +334,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.reviewGap),
-                _AppearanceSection(
-                  themeMode: themeMode,
-                  onThemeSelected: _setThemeMode,
+                _AboutSection(
+                  githubUsername: profile.githubUsername,
+                  onGithubTap: () => _openGithub(profile.githubUsername),
                 ),
-                const SizedBox(height: AppSpacing.reviewGap),
-                _AboutSection(onGithubTap: _openGithub),
               ],
             ),
           ),
@@ -668,99 +718,13 @@ class _DomainRow extends StatelessWidget {
   }
 }
 
-class _AppearanceSection extends StatelessWidget {
-  const _AppearanceSection({
-    required this.themeMode,
-    required this.onThemeSelected,
-  });
-
-  final ThemeMode themeMode;
-  final ValueChanged<ThemeMode> onThemeSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return _SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'APPEARANCE',
-            style: AppTypography.labelSmall.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            children: [
-              _ThemeChip(
-                label: 'Light',
-                selected: themeMode == ThemeMode.light,
-                onTap: () => onThemeSelected(ThemeMode.light),
-              ),
-              _ThemeChip(
-                label: 'Dark',
-                selected: themeMode == ThemeMode.dark,
-                onTap: () => onThemeSelected(ThemeMode.dark),
-              ),
-              _ThemeChip(
-                label: 'System',
-                selected: themeMode == ThemeMode.system,
-                onTap: () => onThemeSelected(ThemeMode.system),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ThemeChip extends StatelessWidget {
-  const _ThemeChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return FilterChip(
-      label: Text(
-        label,
-        style: AppTypography.labelLarge.copyWith(
-          color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-        ),
-      ),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      showCheckmark: false,
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      selectedColor: colorScheme.primary,
-      side: BorderSide(
-        color: selected
-            ? colorScheme.primary
-            : colorScheme.outlineVariant.withValues(alpha: 0.3),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      ),
-    );
-  }
-}
-
 class _AboutSection extends StatelessWidget {
-  const _AboutSection({required this.onGithubTap});
+  const _AboutSection({
+    required this.githubUsername,
+    required this.onGithubTap,
+  });
 
+  final String githubUsername;
   final VoidCallback onGithubTap;
 
   @override
@@ -806,7 +770,7 @@ class _AboutSection extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Text(
-                _githubUrl,
+                'https://github.com/$githubUsername',
                 style: AppTypography.bodyMedium.copyWith(
                   color: colorScheme.primary,
                   decoration: TextDecoration.underline,

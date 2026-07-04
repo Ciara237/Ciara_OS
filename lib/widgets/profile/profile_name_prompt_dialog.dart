@@ -1,6 +1,7 @@
 import 'package:ciaraos/providers/onboarding_provider.dart';
 import 'package:ciaraos/providers/profile_providers.dart';
 import 'package:ciaraos/router/app_router.dart';
+import 'package:ciaraos/services/profile_preferences.dart';
 import 'package:ciaraos/theme/app_spacing.dart';
 import 'package:ciaraos/theme/app_typography.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,9 @@ Future<void> showProfileNamePromptDialog(
   bool isFirstTime = true,
 }) async {
   final controller = TextEditingController();
+  final githubController = TextEditingController(
+    text: ref.read(profileProvider).githubUsername,
+  );
   final formKey = GlobalKey<FormState>();
 
   final saved = await showDialog<bool>(
@@ -35,7 +39,8 @@ Future<void> showProfileNamePromptDialog(
             children: [
               Text(
                 isFirstTime
-                    ? 'Enter your name to personalize your profile and avatar.'
+                    ? 'Enter your name and GitHub username to personalize '
+                        'your profile.'
                     : 'Update the name shown across Ciara OS.',
                 style: AppTypography.bodyMedium.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -65,6 +70,26 @@ Future<void> showProfileNamePromptDialog(
                   }
                 },
               ),
+              if (isFirstTime) ...[
+                const SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  controller: githubController,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'GitHub username',
+                    hintText: 'e.g. Ciara237',
+                  ),
+                  validator: (value) {
+                    final normalized = normalizeGithubUsername(value ?? '');
+                    if (!isValidGithubUsername(normalized)) {
+                      return 'Enter a valid GitHub username';
+                    }
+                    return null;
+                  },
+                ),
+              ],
             ],
           ),
         ),
@@ -89,9 +114,15 @@ Future<void> showProfileNamePromptDialog(
 
   if (saved == true && context.mounted) {
     await ref.read(profileProvider.notifier).saveDisplayName(controller.text);
+    if (isFirstTime) {
+      await ref
+          .read(profileProvider.notifier)
+          .saveGithubUsername(githubController.text);
+    }
   }
 
   controller.dispose();
+  githubController.dispose();
 }
 
 /// Prompts first-time users to set a display name once onboarding is complete.

@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 const _periodOptions = <({String value, String label})>[
   (value: 'week', label: 'This week'),
   (value: 'month', label: 'This month'),
-  (value: 'all', label: 'All time'),
+  (value: 'all', label: 'All'),
 ];
 
 class DomainBreakdownScreen extends ConsumerWidget {

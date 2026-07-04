@@ -26,6 +26,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   Domain _domain = Domain.engineering;
   bool _loaded = false;
   bool _saving = false;
+  bool _continuingBullet = false;
   Note? _existing;
 
   bool get _isEditing => widget.noteId != null;
@@ -83,6 +84,62 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   void initState() {
     super.initState();
     Future.microtask(_loadNote);
+  }
+
+  void _insertBullet() {
+    final text = _contentController.text;
+    final selection = _contentController.selection;
+    final cursor = selection.baseOffset;
+    if (cursor < 0) {
+      return;
+    }
+
+    final beforeCursor = text.substring(0, cursor);
+    final afterCursor = text.substring(cursor);
+    final atLineStart = beforeCursor.isEmpty || beforeCursor.endsWith('\n');
+    final insertion = atLineStart ? '• ' : '\n• ';
+
+    final newText = beforeCursor + insertion + afterCursor;
+    final newCursor = cursor + insertion.length;
+    _contentController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursor),
+    );
+    setState(() {});
+  }
+
+  void _onContentChanged(String value) {
+    if (_continuingBullet) {
+      _continuingBullet = false;
+      setState(() {});
+      return;
+    }
+
+    final selection = _contentController.selection;
+    final cursor = selection.baseOffset;
+    if (cursor <= 0 || value[cursor - 1] != '\n') {
+      setState(() {});
+      return;
+    }
+
+    final beforeNewline = value.substring(0, cursor - 1);
+    final lastNewline = beforeNewline.lastIndexOf('\n');
+    final previousLine = lastNewline < 0
+        ? beforeNewline
+        : beforeNewline.substring(lastNewline + 1);
+
+    if (!previousLine.startsWith('• ')) {
+      setState(() {});
+      return;
+    }
+
+    _continuingBullet = true;
+    final newText = '${value.substring(0, cursor)}• ${value.substring(cursor)}';
+    _contentController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: cursor + 2),
+    );
+    setState(() {});
   }
 
   Future<void> _save() async {
@@ -312,12 +369,28 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                       ),
                     ),
                   ),
+                  if (!isReadOnly) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _insertBullet,
+                          icon: Icon(
+                            Icons.format_list_bulleted,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          tooltip: 'Bullet list',
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.md),
                   Expanded(
                     child: TextField(
                       controller: _contentController,
                       readOnly: isReadOnly,
-                      onChanged: isReadOnly ? null : (_) => setState(() {}),
+                      onChanged: isReadOnly ? null : _onContentChanged,
                       maxLines: null,
                       expands: true,
                       textAlignVertical: TextAlignVertical.top,
