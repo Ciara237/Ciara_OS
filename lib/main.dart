@@ -9,11 +9,20 @@ import 'package:ciaraos/theme/app_theme.dart';
 import 'package:ciaraos/widgets/daily_brief/daily_brief_gate_overlay.dart';
 import 'package:ciaraos/widgets/profile/profile_name_prompt_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Set system UI overlay style for status bar
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
 
   final prefs = await SharedPreferences.getInstance();
 

@@ -22,21 +22,21 @@ class DailyBriefChrome extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+            ),
           ),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
-      child: SafeArea(
-        bottom: false,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
         child: Row(
           children: [
             Icon(Icons.terminal, size: 20, color: colorScheme.primary),
