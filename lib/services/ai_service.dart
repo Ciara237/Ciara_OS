@@ -12,6 +12,11 @@ abstract final class AiServiceConfig {
   );
 }
 
+void _logNetworkRequest(String method, String url, {int? statusCode, String? error}) {
+  // ignore: avoid_print
+  print('📡 [NETWORK] $method $url${statusCode != null ? " → $statusCode" : ""}${error != null ? " ERROR: $error" : ""}');
+}
+
 class AiFetchResult {
   const AiFetchResult._({
     this.brief,
@@ -74,14 +79,17 @@ class AiService {
   final String _baseUrl;
 
   Future<AiFetchResult> fetchBrief(Map<String, dynamic> payload) async {
+    final url = '$_baseUrl/api/brief';
     try {
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/api/brief'),
+            Uri.parse(url),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 30));
+
+      _logNetworkRequest('POST', url, statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         try {
@@ -98,7 +106,8 @@ class AiService {
         statusCode: response.statusCode,
         body: response.body,
       );
-    } on Exception catch (_) {
+    } on Exception catch (e) {
+      _logNetworkRequest('POST', url, error: e.toString());
       return AiFetchResult.connectionFailure(
         'Could not generate your brief. Check your connection and try again.',
       );
@@ -106,12 +115,15 @@ class AiService {
   }
 
   Future<bool> checkHealth() async {
+    final url = '$_baseUrl/health';
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/health'))
+          .get(Uri.parse(url))
           .timeout(const Duration(seconds: 5));
+      _logNetworkRequest('GET', url, statusCode: response.statusCode);
       return response.statusCode == 200;
-    } catch (_) {
+    } catch (e) {
+      _logNetworkRequest('GET', url, error: e.toString());
       return false;
     }
   }

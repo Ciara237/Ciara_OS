@@ -122,7 +122,7 @@ class _ScreenIntro extends StatelessWidget {
       children: [
         Text(
           'EXECUTION ARCHIVE',
-          style: AppTypography.labelSmall.copyWith(
+          style: AppTypography.labelSmallResponsive(context).copyWith(
             color: colorScheme.primary,
             letterSpacing: 2,
           ),
@@ -130,7 +130,7 @@ class _ScreenIntro extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Completed Tasks',
-          style: AppTypography.headingLarge.copyWith(
+          style: AppTypography.headingLargeResponsive(context).copyWith(
             color: colorScheme.onSurface,
           ),
         ),
@@ -147,7 +147,7 @@ class _ScreenIntro extends StatelessWidget {
             Expanded(
               child: Text(
                 'Every completed task represents progress.',
-                style: AppTypography.bodyMedium.copyWith(
+                style: AppTypography.bodyMediumResponsive(context).copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
                 ),

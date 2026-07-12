@@ -90,11 +90,12 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final cardPadding = AppSpacing.cardPadding(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm + 2,
+      padding: EdgeInsets.symmetric(
+        horizontal: cardPadding,
+        vertical: cardPadding - 4,
       ),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
@@ -111,9 +112,8 @@ class _MetricTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: AppTypography.labelSmall.copyWith(
+                  style: AppTypography.labelSmallResponsive(context).copyWith(
                     color: colorScheme.onSurfaceVariant,
-                    fontSize: 9,
                     letterSpacing: 0.8,
                     fontWeight: FontWeight.w600,
                   ),
@@ -126,10 +126,9 @@ class _MetricTile extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: AppTypography.headingMedium.copyWith(
+            style: AppTypography.statMediumResponsive(context).copyWith(
               color: colorScheme.onSurface,
               fontWeight: FontWeight.w700,
-              fontSize: 24,
               height: 1,
             ),
             overflow: TextOverflow.ellipsis,

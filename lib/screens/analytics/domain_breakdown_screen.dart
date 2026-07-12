@@ -70,7 +70,7 @@ class _ScreenIntro extends StatelessWidget {
       children: [
         Text(
           'ANALYTICS',
-          style: AppTypography.labelSmall.copyWith(
+          style: AppTypography.labelSmallResponsive(context).copyWith(
             color: colorScheme.primary,
             letterSpacing: 2,
           ),
@@ -78,14 +78,14 @@ class _ScreenIntro extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Domain Breakdown',
-          style: AppTypography.headingLarge.copyWith(
+          style: AppTypography.headingLargeResponsive(context).copyWith(
             color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Time and tasks distribution across active spheres.',
-          style: AppTypography.bodyMedium.copyWith(
+          style: AppTypography.bodyMediumResponsive(context).copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),

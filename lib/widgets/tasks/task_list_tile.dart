@@ -71,6 +71,7 @@ class TaskListTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final domainColor = context.domainColor(task.domain);
     final isDone = task.status == TaskStatus.done;
+    final minTouchHeight = AppSpacing.minListTileHeight(context);
 
     return Material(
       color: Colors.transparent,
@@ -86,13 +87,14 @@ class TaskListTile extends StatelessWidget {
               color: colorScheme.outlineVariant.withValues(alpha: 0.1),
             ),
           ),
-          child: IntrinsicHeight(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minTouchHeight),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (showCheckbox)
                   Padding(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: AppSpacing.sm,
                       vertical: AppSpacing.sm,
                     ),
@@ -128,7 +130,7 @@ class TaskListTile extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
+                    padding: EdgeInsets.all(AppSpacing.md),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -143,13 +145,16 @@ class TaskListTile extends StatelessWidget {
                                       label: domainShortLabel(task.domain),
                                       color: domainColor,
                                     ),
-                                    const SizedBox(width: AppSpacing.sm),
+                                    SizedBox(width: AppSpacing.sm),
                                     Expanded(
                                       child: Text(
                                         task.title,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: AppTypography.bodyLarge.copyWith(
+                                        style:
+                                            AppTypography.bodyLargeResponsive(
+                                          context,
+                                        ).copyWith(
                                           color: colorScheme.onSurface,
                                           decoration: isDone
                                               ? TextDecoration.lineThrough
@@ -164,34 +169,40 @@ class TaskListTile extends StatelessWidget {
                                   task.title,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.bodyLarge.copyWith(
-                                    color: colorScheme.onSurface,
-                                    decoration: isDone
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                  ),
+                                  style:
+                                      AppTypography.bodyLargeResponsive(
+                                        context,
+                                      ).copyWith(
+                                        color: colorScheme.onSurface,
+                                        decoration: isDone
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                      ),
                                 ),
                               ],
                               if (_subtitle != null) ...[
-                                const SizedBox(height: AppSpacing.xs),
+                                SizedBox(height: AppSpacing.xs),
                                 Text(
                                   _subtitle!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                                  style:
+                                      AppTypography.bodyMediumResponsive(
+                                        context,
+                                      ).copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
                                 ),
                               ],
                             ],
                           ),
                         ),
                         if (showDeadline) ...[
-                          const SizedBox(width: AppSpacing.sm),
+                          SizedBox(width: AppSpacing.sm),
                           _DeadlineBadge(task: task),
                         ],
                         if (showStartedButton) ...[
-                          const SizedBox(width: AppSpacing.sm),
+                          SizedBox(width: AppSpacing.sm),
                           StartedToggleButton(
                             started: task.started,
                             domainColor: domainColor,
@@ -234,7 +245,7 @@ class _DomainChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTypography.labelSmall.copyWith(color: color),
+        style: AppTypography.labelSmallResponsive(context).copyWith(color: color),
       ),
     );
   }
@@ -257,7 +268,8 @@ class _DeadlineBadge extends StatelessWidget {
     final text = switch (display) {
       TaskDeadlineDisplay.today => 'TODAY',
       TaskDeadlineDisplay.overdue => 'OVERDUE',
-      TaskDeadlineDisplay.date => DateFormat('MMM d').format(task.deadline!).toUpperCase(),
+      TaskDeadlineDisplay.date =>
+        DateFormat('MMM d').format(task.deadline!).toUpperCase(),
       TaskDeadlineDisplay.none => '',
     };
 
@@ -267,7 +279,7 @@ class _DeadlineBadge extends StatelessWidget {
 
     return Text(
       text,
-      style: AppTypography.labelLarge.copyWith(color: color),
+      style: AppTypography.labelLargeResponsive(context).copyWith(color: color),
     );
   }
 }
@@ -287,28 +299,31 @@ class StartedToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final buttonHeight = AppSpacing.buttonHeight(context);
+    final iconSize = AppSpacing.iconSize(context);
 
     if (started) {
       return FilledButton.icon(
         onPressed: onPressed,
         icon: Icon(
           Icons.play_arrow,
-          size: AppSpacing.md,
+          size: iconSize,
           color: colorScheme.onPrimary,
         ),
         label: Text(
           '▶ STARTED',
-          style: AppTypography.labelLarge.copyWith(
+          style: AppTypography.labelLargeResponsive(context).copyWith(
             color: colorScheme.onPrimary,
           ),
         ),
         style: FilledButton.styleFrom(
           backgroundColor: domainColor,
           foregroundColor: colorScheme.onPrimary,
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.sm,
           ),
+          minimumSize: Size(0, buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
@@ -320,21 +335,22 @@ class StartedToggleButton extends StatelessWidget {
       onPressed: onPressed,
       icon: Icon(
         Icons.play_arrow,
-        size: AppSpacing.md,
+        size: iconSize,
         color: colorScheme.onSurfaceVariant,
       ),
       label: Text(
         '▶ STARTED',
-        style: AppTypography.labelLarge.copyWith(
+        style: AppTypography.labelLargeResponsive(context).copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
       ),
       style: OutlinedButton.styleFrom(
         side: BorderSide(color: colorScheme.onSurfaceVariant),
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,
         ),
+        minimumSize: Size(0, buttonHeight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
         ),

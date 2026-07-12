@@ -5,6 +5,11 @@ import 'package:ciaraos/services/ai_service.dart';
 import 'package:ciaraos/services/security_cache.dart';
 import 'package:http/http.dart' as http;
 
+void _logNetworkRequest(String method, String url, {int? statusCode, String? error}) {
+  // ignore: avoid_print
+  print('📡 [NETWORK] $method $url${statusCode != null ? " → $statusCode" : ""}${error != null ? " ERROR: $error" : ""}');
+}
+
 enum SecurityEndpointAvailability {
   available,
   notConfigured,
@@ -32,21 +37,27 @@ class SecurityService {
   final String _baseUrl;
 
   Future<bool> checkHealth() async {
+    final url = '$_baseUrl/health';
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/health'))
+          .get(Uri.parse(url))
           .timeout(const Duration(seconds: 8));
+      _logNetworkRequest('GET', url, statusCode: response.statusCode);
       return response.statusCode == 200;
-    } catch (_) {
+    } catch (e) {
+      _logNetworkRequest('GET', url, error: e.toString());
       return false;
     }
   }
 
   Future<SecurityEndpointAvailability> _probeEndpoint(String path) async {
+    final url = '$_baseUrl$path';
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl$path'))
+          .get(Uri.parse(url))
           .timeout(const Duration(seconds: 12));
+
+      _logNetworkRequest('GET', url, statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         return SecurityEndpointAvailability.available;
@@ -58,7 +69,8 @@ class SecurityService {
         return SecurityEndpointAvailability.notConfigured;
       }
       return SecurityEndpointAvailability.error;
-    } catch (_) {
+    } catch (e) {
+      _logNetworkRequest('GET', url, error: e.toString());
       return SecurityEndpointAvailability.backendUnreachable;
     }
   }
@@ -86,11 +98,14 @@ class SecurityService {
   }
 
   Future<HackTheBoxProfile?> fetchHackTheBox({bool force = false}) async {
+    final url = '$_baseUrl/api/security/hackthebox';
     try {
-      final uri = Uri.parse('$_baseUrl/api/security/hackthebox').replace(
+      final uri = Uri.parse(url).replace(
         queryParameters: force ? {'force': 'true'} : null,
       );
       final response = await http.get(uri).timeout(const Duration(seconds: 25));
+
+      _logNetworkRequest('GET', url, statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         final profile = HackTheBoxProfile.fromJson(
@@ -100,17 +115,21 @@ class SecurityService {
         return profile;
       }
       return null;
-    } catch (_) {
+    } catch (e) {
+      _logNetworkRequest('GET', url, error: e.toString());
       return null;
     }
   }
 
   Future<HackerOneProfile?> fetchHackerOne({bool force = false}) async {
+    final url = '$_baseUrl/api/security/hackerone';
     try {
-      final uri = Uri.parse('$_baseUrl/api/security/hackerone').replace(
+      final uri = Uri.parse(url).replace(
         queryParameters: force ? {'force': 'true'} : null,
       );
       final response = await http.get(uri).timeout(const Duration(seconds: 25));
+
+      _logNetworkRequest('GET', url, statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         final profile = HackerOneProfile.fromJson(
@@ -120,27 +139,32 @@ class SecurityService {
         return profile;
       }
       return null;
-    } catch (_) {
+    } catch (e) {
+      _logNetworkRequest('GET', url, error: e.toString());
       return null;
     }
   }
 
   Future<bool> logManualActivity(SecurityManualLog log) async {
+    final url = '$_baseUrl/api/security/log';
     try {
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/api/security/log'),
+            Uri.parse(url),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(log.toJson()),
           )
           .timeout(const Duration(seconds: 15));
+
+      _logNetworkRequest('POST', url, statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
         return body['logged'] == true;
       }
       return false;
-    } catch (_) {
+    } catch (e) {
+      _logNetworkRequest('POST', url, error: e.toString());
       return false;
     }
   }

@@ -3,6 +3,7 @@ import 'package:ciaraos/providers/notification_providers.dart';
 import 'package:ciaraos/providers/onboarding_provider.dart';
 import 'package:ciaraos/providers/theme_provider.dart';
 import 'package:ciaraos/router/app_router.dart';
+import 'package:ciaraos/services/ai_service.dart';
 import 'package:ciaraos/services/daily_brief_prefs.dart';
 import 'package:ciaraos/services/onboarding_notifier.dart';
 import 'package:ciaraos/theme/app_theme.dart';
@@ -23,6 +24,16 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
+
+  // Log backend URL configuration
+  final backendUrl = AiServiceConfig.baseUrl;
+  if (backendUrl.isEmpty) {
+    // ignore: avoid_print
+    print('🚨 [NETWORK] CIARA_AI_BACKEND_URL is EMPTY - no backend configured!');
+  } else {
+    // ignore: avoid_print
+    print('🔧 [NETWORK] Backend URL: $backendUrl');
+  }
 
   final prefs = await SharedPreferences.getInstance();
 

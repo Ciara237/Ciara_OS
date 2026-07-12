@@ -40,6 +40,7 @@ class CompletedTaskCard extends StatelessWidget {
     final actual = formatDurationMinutes(task.totalFocusedSeconds);
     final estimated = formatEstimatedMinutes(task.estimatedDurationMinutes);
     final completedAt = DateFormat('HH:mm').format(task.updatedAt);
+    final cardPadding = AppSpacing.cardPadding(context);
 
     return Material(
       color: Colors.transparent,
@@ -69,7 +70,7 @@ class CompletedTaskCard extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
+                    padding: EdgeInsets.all(cardPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -98,7 +99,7 @@ class CompletedTaskCard extends StatelessWidget {
                                 children: [
                                   Text(
                                     task.title,
-                                    style: AppTypography.bodyMedium.copyWith(
+                                    style: AppTypography.bodyMediumResponsive(context).copyWith(
                                       color: colorScheme.onSurface,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -109,7 +110,7 @@ class CompletedTaskCard extends StatelessWidget {
                                       Flexible(
                                         child: Text(
                                           _contextLine,
-                                          style: AppTypography.labelSmall
+                                          style: AppTypography.labelSmallResponsive(context)
                                               .copyWith(
                                             color:
                                                 colorScheme.onSurfaceVariant,
@@ -132,14 +133,14 @@ class CompletedTaskCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 '$actual / $estimated',
-                                style: AppTypography.monospace.copyWith(
+                                style: AppTypography.monospaceResponsive(context).copyWith(
                                   color: colorScheme.onSurface,
                                 ),
                               ),
                             ),
                             Text(
                               accuracyText,
-                              style: AppTypography.monospace.copyWith(
+                              style: AppTypography.monospaceResponsive(context).copyWith(
                                 color: lowAccuracy
                                     ? colorScheme.error
                                     : colorScheme.primary,
@@ -154,7 +155,7 @@ class CompletedTaskCard extends StatelessWidget {
                             const SizedBox(width: AppSpacing.xs),
                             Text(
                               '${task.focusSessionCount}',
-                              style: AppTypography.labelSmall.copyWith(
+                              style: AppTypography.labelSmallResponsive(context).copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
@@ -165,7 +166,7 @@ class CompletedTaskCard extends StatelessWidget {
                           alignment: Alignment.centerRight,
                           child: Text(
                             'COMPLETED $completedAt',
-                            style: AppTypography.labelSmall.copyWith(
+                            style: AppTypography.labelSmallResponsive(context).copyWith(
                               color: colorScheme.onSurfaceVariant,
                               letterSpacing: 1.1,
                             ),

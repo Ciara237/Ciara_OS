@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-const _drawerWidth = 280.0;
 const _activeBorderWidth = 3.0;
 const _appVersion = 'v1.0.0';
 const _drawerAvatarSize = 48.0;
@@ -34,9 +33,11 @@ class PrimaryDrawer extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final currentRoute = _currentLocation(context);
     final profile = ref.watch(profileProvider);
+    final drawerWidth =
+        (MediaQuery.of(context).size.width * 0.82).clamp(260.0, 320.0);
 
     return Drawer(
-      width: _drawerWidth,
+      width: drawerWidth,
       backgroundColor: colorScheme.surfaceContainerLow,
       child: SafeArea(
         child: Column(
@@ -201,7 +202,7 @@ class _DrawerHeader extends StatelessWidget {
                       displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.headingMedium.copyWith(
+                      style: AppTypography.headingMediumResponsive(context).copyWith(
                         color: colorScheme.onSurface,
                       ),
                     ),
@@ -209,7 +210,7 @@ class _DrawerHeader extends StatelessWidget {
                       tagline,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodyMedium.copyWith(
+                      style: AppTypography.bodyMediumResponsive(context).copyWith(
                         color: colorScheme.onSurfaceVariant,
                         decoration: TextDecoration.none,
                       ),

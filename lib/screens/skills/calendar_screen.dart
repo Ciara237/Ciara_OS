@@ -144,6 +144,8 @@ class _CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final iconSize = AppSpacing.iconSize(context);
+    final minTouchSize = AppSpacing.minIconButtonSize(context);
 
     return Material(
       color: colorScheme.surface,
@@ -155,7 +157,7 @@ class _CalendarHeader extends StatelessWidget {
             ),
           ),
         ),
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.sm,
           AppSpacing.md,
@@ -167,19 +169,19 @@ class _CalendarHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: 40,
-                height: 40,
+                width: minTouchSize,
+                height: minTouchSize,
                 child: IconButton(
                   onPressed: onBack,
                   icon: Icon(
                     Icons.arrow_back,
                     color: colorScheme.onSurfaceVariant,
-                    size: 22,
+                    size: iconSize,
                   ),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
+                  constraints: BoxConstraints(
+                    minWidth: minTouchSize,
+                    minHeight: minTouchSize,
                   ),
                 ),
               ),
@@ -189,7 +191,7 @@ class _CalendarHeader extends StatelessWidget {
                   children: [
                     Text(
                       'SCHEDULE',
-                      style: AppTypography.labelSmall.copyWith(
+                      style: AppTypography.labelSmallResponsive(context).copyWith(
                         fontFamily: 'monospace',
                         color: colorScheme.onSurfaceVariant,
                         letterSpacing: 1.2,
@@ -197,7 +199,7 @@ class _CalendarHeader extends StatelessWidget {
                     ),
                     Text(
                       'Calendar',
-                      style: AppTypography.headingLarge.copyWith(
+                      style: AppTypography.headingLargeResponsive(context).copyWith(
                         color: colorScheme.onSurface,
                       ),
                     ),
@@ -215,25 +217,28 @@ class _CalendarHeader extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.right,
-                      style: AppTypography.labelSmall.copyWith(
+                      style: AppTypography.labelSmallResponsive(context).copyWith(
                         fontFamily: 'monospace',
-                        fontSize: 10,
                         height: 1.3,
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     if (showSearch)
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.search,
-                          color: colorScheme.onSurfaceVariant,
-                          size: 20,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
+                      SizedBox(
+                        width: minTouchSize,
+                        height: minTouchSize,
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            Icons.search,
+                            color: colorScheme.onSurfaceVariant,
+                            size: iconSize,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(
+                            minWidth: minTouchSize,
+                            minHeight: minTouchSize,
+                          ),
                         ),
                       ),
                   ],
@@ -651,6 +656,8 @@ class _CalendarEventCard extends ConsumerWidget {
             ? AppColors.domainColors[domain]!
             : colorScheme.primary)
         : colorScheme.outlineVariant;
+    final iconSize = AppSpacing.iconSize(context);
+    final minTouchSize = AppSpacing.minIconButtonSize(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -663,7 +670,7 @@ class _CalendarEventCard extends ConsumerWidget {
               ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.all(AppSpacing.cardPadding(context)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -674,7 +681,7 @@ class _CalendarEventCard extends ConsumerWidget {
                 children: [
                   Text(
                     _formatStartTime(event.start),
-                    style: AppTypography.bodyLarge.copyWith(
+                    style: AppTypography.bodyLargeResponsive(context).copyWith(
                       fontWeight: FontWeight.w700,
                       color: colorScheme.onSurface,
                     ),
@@ -682,8 +689,7 @@ class _CalendarEventCard extends ConsumerWidget {
                   if (!event.isAllDay)
                     Text(
                       _formatEndTime(event.end),
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontSize: 12,
+                      style: AppTypography.bodyMediumResponsive(context).copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -702,8 +708,7 @@ class _CalendarEventCard extends ConsumerWidget {
                           event.isFocusBlock
                               ? event.displayTitle
                               : event.title,
-                          style: AppTypography.headingMedium.copyWith(
-                            fontSize: 16,
+                          style: AppTypography.headingMediumResponsive(context).copyWith(
                             color: colorScheme.onSurface,
                           ),
                         ),
@@ -711,9 +716,8 @@ class _CalendarEventCard extends ConsumerWidget {
                       if (event.isFocusBlock)
                         Text(
                           'FOCUS BLOCK',
-                          style: AppTypography.labelSmall.copyWith(
+                          style: AppTypography.labelSmallResponsive(context).copyWith(
                             fontFamily: 'monospace',
-                            fontSize: 9,
                             color: accentColor,
                           ),
                         )
@@ -730,9 +734,8 @@ class _CalendarEventCard extends ConsumerWidget {
                           ),
                           child: Text(
                             '${event.durationMinutes}M',
-                            style: AppTypography.labelSmall.copyWith(
+                            style: AppTypography.labelSmallResponsive(context).copyWith(
                               fontFamily: 'monospace',
-                              fontSize: 9,
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ),
@@ -755,9 +758,8 @@ class _CalendarEventCard extends ConsumerWidget {
                       ),
                       child: Text(
                         '${domainLabel(domain)} · ${event.durationMinutes} min',
-                        style: AppTypography.labelSmall.copyWith(
+                        style: AppTypography.labelSmallResponsive(context).copyWith(
                           fontFamily: 'monospace',
-                          fontSize: 10,
                           color: accentColor,
                         ),
                       ),
@@ -771,7 +773,7 @@ class _CalendarEventCard extends ConsumerWidget {
                       children: [
                         Icon(
                           Icons.location_on,
-                          size: 14,
+                          size: iconSize,
                           color: colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 4),
@@ -780,8 +782,7 @@ class _CalendarEventCard extends ConsumerWidget {
                             event.location!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTypography.bodyMedium.copyWith(
-                              fontSize: 12,
+                            style: AppTypography.bodyMediumResponsive(context).copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ),
@@ -793,33 +794,41 @@ class _CalendarEventCard extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
-                        IconButton(
-                          onPressed: () => _reschedule(context, ref),
-                          icon: Icon(
-                            Icons.access_time,
-                            size: 20,
-                            color: colorScheme.onSurfaceVariant,
+                        SizedBox(
+                          width: minTouchSize,
+                          height: minTouchSize,
+                          child: IconButton(
+                            onPressed: () => _reschedule(context, ref),
+                            icon: Icon(
+                              Icons.access_time,
+                              size: iconSize,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(
+                              minWidth: minTouchSize,
+                              minHeight: minTouchSize,
+                            ),
+                            tooltip: 'Reschedule',
                           ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
-                          ),
-                          tooltip: 'Reschedule',
                         ),
-                        IconButton(
-                          onPressed: () => _delete(context, ref),
-                          icon: Icon(
-                            Icons.delete_outline,
-                            size: 20,
-                            color: colorScheme.error,
+                        SizedBox(
+                          width: minTouchSize,
+                          height: minTouchSize,
+                          child: IconButton(
+                            onPressed: () => _delete(context, ref),
+                            icon: Icon(
+                              Icons.delete_outline,
+                              size: iconSize,
+                              color: colorScheme.error,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(
+                              minWidth: minTouchSize,
+                              minHeight: minTouchSize,
+                            ),
+                            tooltip: 'Delete',
                           ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
-                          ),
-                          tooltip: 'Delete',
                         ),
                       ],
                     ),

@@ -30,6 +30,7 @@ class TasksBacklogListSection extends ConsumerWidget {
       deadline: deadline,
       status: status,
     );
+    final widgetSpacing = AppSpacing.widgetSpacing(context);
 
     return filteredTasks.when(
       loading: () => const Padding(
@@ -85,7 +86,7 @@ class TasksBacklogListSection extends ConsumerWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: tasks.length,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
+          separatorBuilder: (_, _) => SizedBox(height: widgetSpacing),
           itemBuilder: (context, index) {
             final task = tasks[index];
             return TaskListTile(

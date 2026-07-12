@@ -12,28 +12,42 @@ class MinimalBackHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final iconSize = AppSpacing.iconSize(context);
+    final minTouchSize = AppSpacing.minIconButtonSize(context);
 
-    return Container(
-      height: appBarHeight,
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        height: appBarHeight,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+            ),
           ),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: onBack ?? () => context.pop(),
-            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-            tooltip: 'Back',
-          ),
-          if (action != null) action!,
-        ],
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: minTouchSize,
+              height: minTouchSize,
+              child: IconButton(
+                onPressed: onBack ?? () => context.pop(),
+                icon: Icon(Icons.arrow_back, color: colorScheme.onSurface, size: iconSize),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(
+                  minWidth: minTouchSize,
+                  minHeight: minTouchSize,
+                ),
+                tooltip: 'Back',
+              ),
+            ),
+            if (action != null) action!,
+          ],
+        ),
       ),
     );
   }

@@ -158,7 +158,7 @@ class CompletedTasksPdfTemplate {
         padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         color: _palette.summaryBg,
         child: pw.Text(
-          '${tasks.length} tasks · ${hours}h focused · ${accuracy} avg accuracy',
+          '${tasks.length} tasks · $hours h focused · $accuracy avg accuracy',
           style: pw.TextStyle(
             font: PdfTokens.monoFont,
             fontSize: 7,

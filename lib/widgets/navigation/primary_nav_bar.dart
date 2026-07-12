@@ -52,6 +52,7 @@ class PrimaryNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final selectedIndex = ref.watch(selectedTabProvider);
+    final iconSize = AppSpacing.iconSize(context);
 
     return NavigationBar(
       height: AppSpacing.bottomNavHeight,
@@ -65,9 +66,13 @@ class PrimaryNavBar extends ConsumerWidget {
       destinations: [
         for (final destination in kPrimaryNavDestinations)
           NavigationDestination(
-            icon: Icon(destination.icon),
+            icon: Icon(
+              destination.icon,
+              size: iconSize,
+            ),
             selectedIcon: Icon(
               destination.icon,
+              size: iconSize,
               color: colorScheme.primary,
             ),
             label: destination.label,
@@ -76,9 +81,11 @@ class PrimaryNavBar extends ConsumerWidget {
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return AppTypography.labelSmall.copyWith(color: colorScheme.primary);
+          return AppTypography.labelSmallResponsive(context).copyWith(
+            color: colorScheme.primary,
+          );
         }
-        return AppTypography.labelSmall.copyWith(
+        return AppTypography.labelSmallResponsive(context).copyWith(
           color: colorScheme.onSurfaceVariant,
         );
       }),

@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-const _headerActionSize = 40.0;
-
 class TodayHeader extends ConsumerWidget {
   const TodayHeader({super.key});
 
@@ -18,6 +16,8 @@ class TodayHeader extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final authAsync = ref.watch(calendarAuthProvider);
     final authorized = authAsync.value?.authorized ?? false;
+    final iconSize = AppSpacing.iconSize(context);
+    final minTouchSize = AppSpacing.minIconButtonSize(context);
 
     return SafeArea(
       bottom: false,
@@ -31,23 +31,24 @@ class TodayHeader extends ConsumerWidget {
             ),
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
         child: Row(
           children: [
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  width: _headerActionSize,
+                  width: minTouchSize,
+                  height: minTouchSize,
                   child: UserAvatarButton(
-                    size: _headerActionSize,
+                    size: iconSize,
                     onTap: () => handleAvatarNavigation(context),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                SizedBox(width: AppSpacing.sm),
                 Text(
                   'CiaraOS',
-                  style: AppTypography.headingMedium.copyWith(
+                  style: AppTypography.headingMediumResponsive(context).copyWith(
                     color: colorScheme.onSurface,
                   ),
                 ),
@@ -58,7 +59,7 @@ class TodayHeader extends ConsumerWidget {
                 child: Icon(
                   Icons.terminal,
                   color: colorScheme.primary,
-                  size: 24,
+                  size: iconSize,
                 ),
               ),
             ),
@@ -76,12 +77,12 @@ class TodayHeader extends ConsumerWidget {
                   icon: Icon(
                     Icons.calendar_month,
                     color: colorScheme.onSurfaceVariant,
-                    size: 24,
+                    size: iconSize,
                   ),
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  constraints: const BoxConstraints(
-                    minWidth: _headerActionSize,
-                    minHeight: _headerActionSize,
+                  padding: EdgeInsets.all(AppSpacing.sm),
+                  constraints: BoxConstraints(
+                    minWidth: minTouchSize,
+                    minHeight: minTouchSize,
                   ),
                   tooltip: 'Calendar',
                 ),
@@ -90,12 +91,12 @@ class TodayHeader extends ConsumerWidget {
                   icon: Icon(
                     Icons.rocket_launch,
                     color: colorScheme.onSurfaceVariant,
-                    size: 24,
+                    size: iconSize,
                   ),
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  constraints: const BoxConstraints(
-                    minWidth: _headerActionSize,
-                    minHeight: _headerActionSize,
+                  padding: EdgeInsets.all(AppSpacing.sm),
+                  constraints: BoxConstraints(
+                    minWidth: minTouchSize,
+                    minHeight: minTouchSize,
                   ),
                   tooltip: 'Daily Brief',
                 ),

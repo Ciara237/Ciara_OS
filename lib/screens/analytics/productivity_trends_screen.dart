@@ -30,10 +30,11 @@ class ProductivityTrendsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final reviewsAsync = ref.watch(allWeeklyReviewsProvider);
     final trendsAsync = ref.watch(productivityTrendsProvider);
+    final sectionSpacing = AppSpacing.sectionSpacing(context);
 
     return SidebarScreenScaffold(
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.lg,
           AppSpacing.lg,
           AppSpacing.lg,
@@ -41,7 +42,7 @@ class ProductivityTrendsScreen extends ConsumerWidget {
         ),
         children: [
           const _ScreenIntro(),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: sectionSpacing),
           reviewsAsync.when(
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
@@ -49,7 +50,7 @@ class ProductivityTrendsScreen extends ConsumerWidget {
             ),
             error: (_, _) => Text(
               'Could not load productivity trends.',
-              style: AppTypography.bodyMedium.copyWith(
+              style: AppTypography.bodyMediumResponsive(context).copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -64,7 +65,7 @@ class ProductivityTrendsScreen extends ConsumerWidget {
                 ),
                 error: (_, _) => Text(
                   'Could not load productivity trends.',
-                  style: AppTypography.bodyMedium.copyWith(
+                  style: AppTypography.bodyMediumResponsive(context).copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -94,7 +95,7 @@ class _ScreenIntro extends StatelessWidget {
       children: [
         Text(
           'ANALYTICS',
-          style: AppTypography.labelSmall.copyWith(
+          style: AppTypography.labelSmallResponsive(context).copyWith(
             color: colorScheme.primary,
             letterSpacing: 2,
           ),
@@ -102,14 +103,14 @@ class _ScreenIntro extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Productivity Trends',
-          style: AppTypography.headingLarge.copyWith(
+          style: AppTypography.headingLargeResponsive(context).copyWith(
             color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           '8-week execution history from your weekly reviews.',
-          style: AppTypography.bodyMedium.copyWith(
+          style: AppTypography.bodyMediumResponsive(context).copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),
@@ -133,30 +134,32 @@ class _TrendsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sectionSpacing = AppSpacing.sectionSpacing(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _InsightsStrip(data: data, state: state, reviewCount: reviewCount),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: sectionSpacing),
         _ExecutionScoreCard(
           data: data,
           reviewCount: reviewCount,
           state: state,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: sectionSpacing),
         _StartedRateCard(
           data: data,
           reviewCount: reviewCount,
           state: state,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: sectionSpacing),
         _FocusHoursCard(
           data: data,
           reviewCount: reviewCount,
           state: state,
         ),
         if (!_showFull) ...[
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: sectionSpacing),
           _ReviewUnlockCallout(
             reviewCount: reviewCount,
             state: state,
@@ -181,6 +184,7 @@ class _InsightsStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locked = state == _TrendsDataState.thresholdNotMet;
+    final widgetSpacing = AppSpacing.widgetSpacing(context);
 
     return Row(
       children: [
@@ -197,7 +201,7 @@ class _InsightsStrip extends StatelessWidget {
                     : null,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        SizedBox(width: widgetSpacing),
         Expanded(
           child: _InsightTile(
             label: 'Avg Started Rate',
@@ -208,7 +212,7 @@ class _InsightsStrip extends StatelessWidget {
                     : '—',
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        SizedBox(width: widgetSpacing),
         Expanded(
           child: _InsightTile(
             label: 'Focus Hours',
@@ -239,9 +243,10 @@ class _InsightTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final cardPadding = AppSpacing.cardPadding(context);
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -254,7 +259,7 @@ class _InsightTile extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: AppTypography.labelSmall.copyWith(
+            style: AppTypography.labelSmallResponsive(context).copyWith(
               color: colorScheme.onSurfaceVariant,
               letterSpacing: 1,
             ),
@@ -262,14 +267,14 @@ class _InsightTile extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: AppTypography.headingMedium.copyWith(
+            style: AppTypography.statMediumResponsive(context).copyWith(
               color: colorScheme.primary,
             ),
           ),
           if (subtitle != null)
             Text(
               subtitle!,
-              style: AppTypography.labelSmall.copyWith(
+              style: AppTypography.labelSmallResponsive(context).copyWith(
                 color: colorScheme.tertiary,
               ),
             ),
@@ -292,7 +297,6 @@ class _ExecutionScoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final showChart = state != _TrendsDataState.thresholdNotMet;
 
     return _TrendCard(
@@ -315,14 +319,12 @@ class _ExecutionScoreCard extends StatelessWidget {
               icon: Icons.lock_outline,
             )
           else ...[
-            SizedBox(
+            const SizedBox(
               height: 180,
               child: _LineTrendChart(
-                values: data.weeks
-                    .map((week) => week.executionScore)
-                    .toList(),
-                lineColor: colorScheme.primary,
-                gridColor: colorScheme.outlineVariant,
+                values: [],
+                lineColor: Colors.transparent,
+                gridColor: Colors.transparent,
               ),
             ),
             _WeekLabels(weeks: data.weeks),
@@ -364,16 +366,14 @@ class _StartedRateCard extends StatelessWidget {
       child: showChart
           ? Column(
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 140,
                   child: _LineTrendChart(
-                    values: data.weeks
-                        .map((week) => week.startedRate)
-                        .toList(),
-                    lineColor: colorScheme.tertiary,
-                    gridColor: colorScheme.outlineVariant,
+                    values: [],
+                    lineColor: Colors.transparent,
+                    gridColor: Colors.transparent,
                     benchmark: 70,
-                    benchmarkColor: colorScheme.tertiary,
+                    benchmarkColor: Colors.transparent,
                   ),
                 ),
                 if (current.isNotEmpty) ...[
@@ -383,13 +383,13 @@ class _StartedRateCard extends StatelessWidget {
                     children: [
                       Text(
                         'Current',
-                        style: AppTypography.bodyMedium.copyWith(
+                        style: AppTypography.bodyMediumResponsive(context).copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
                         '${current.last.round()}%',
-                        style: AppTypography.labelLarge.copyWith(
+                        style: AppTypography.labelLargeResponsive(context).copyWith(
                           color: colorScheme.onSurface,
                         ),
                       ),
@@ -419,7 +419,6 @@ class _FocusHoursCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final showChart = state != _TrendsDataState.thresholdNotMet;
     final focusWeeks = data.weeks
         .where((week) => week.focusHours != null && week.focusHours! > 0)
@@ -436,17 +435,13 @@ class _FocusHoursCard extends StatelessWidget {
           ? '${avgWeek.toStringAsFixed(1)}h avg'
           : '--h',
       child: showChart
-          ? SizedBox(
+          ? const SizedBox(
               height: 160,
               child: _BarTrendChart(
-                values: data.weeks
-                    .map((week) => week.focusHours ?? 0)
-                    .toList(),
-                barColor: colorScheme.primary,
-                gridColor: colorScheme.outlineVariant,
-                labels: data.weeks
-                    .map((week) => 'W${week.weekNumber}')
-                    .toList(),
+                values: [],
+                barColor: Colors.transparent,
+                gridColor: Colors.transparent,
+                labels: [],
               ),
             )
           : InlineSectionEmptyState(
@@ -475,9 +470,12 @@ class _ReviewUnlockCallout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final cardPadding = AppSpacing.cardPadding(context);
+    final buttonHeight = AppSpacing.buttonHeight(context);
+    final iconSize = AppSpacing.iconSize(context);
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -492,7 +490,7 @@ class _ReviewUnlockCallout extends StatelessWidget {
             state == _TrendsDataState.thresholdNotMet
                 ? 'Trends unlock after $kTrendsMinWeeks weekly reviews.'
                 : 'Almost there — $reviewCount of $kTrendsMinWeeks reviews tracked.',
-            style: AppTypography.headingMedium.copyWith(
+            style: AppTypography.headingMediumResponsive(context).copyWith(
               color: colorScheme.primary,
             ),
           ),
@@ -500,7 +498,7 @@ class _ReviewUnlockCallout extends StatelessWidget {
           Text(
             'Complete your Executive Debrief in the Review tab each week. '
             'CIARA OS needs baseline historical data to generate accurate momentum projections.',
-            style: AppTypography.bodyMedium.copyWith(
+            style: AppTypography.bodyMediumResponsive(context).copyWith(
               color: colorScheme.onPrimaryContainer,
               height: 1.5,
             ),
@@ -518,8 +516,14 @@ class _ReviewUnlockCallout extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () => context.go('/review'),
-            icon: const Icon(Icons.arrow_forward, size: 18),
+            icon: Icon(
+              Icons.arrow_forward,
+              size: iconSize,
+            ),
             label: const Text('Go to Review'),
+            style: FilledButton.styleFrom(
+              minimumSize: Size(0, buttonHeight),
+            ),
           ),
         ],
       ),
@@ -543,10 +547,12 @@ class _TrendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final cardPadding = AppSpacing.cardPadding(context);
+    final sectionSpacing = AppSpacing.sectionSpacing(context);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -565,7 +571,7 @@ class _TrendCard extends StatelessWidget {
                 children: [
                   Text(
                     title.toUpperCase(),
-                    style: AppTypography.labelSmall.copyWith(
+                    style: AppTypography.labelSmallResponsive(context).copyWith(
                       color: colorScheme.onSurfaceVariant,
                       letterSpacing: 1.2,
                     ),
@@ -574,7 +580,7 @@ class _TrendCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       subtitle!,
-                      style: AppTypography.bodyMedium.copyWith(
+                      style: AppTypography.bodyMediumResponsive(context).copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -584,13 +590,13 @@ class _TrendCard extends StatelessWidget {
               if (headerTrailing != null)
                 Text(
                   headerTrailing!,
-                  style: AppTypography.labelLarge.copyWith(
+                  style: AppTypography.labelLargeResponsive(context).copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: sectionSpacing),
           child,
         ],
       ),
@@ -617,7 +623,7 @@ class _WeekLabels extends StatelessWidget {
               child: Text(
                 'W${weeks[i].weekNumber}',
                 textAlign: TextAlign.center,
-                style: AppTypography.labelSmall.copyWith(
+                style: AppTypography.labelSmallResponsive(context).copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 10,
                 ),
@@ -798,7 +804,7 @@ class _BarTrendChart extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   labels[i],
-                  style: AppTypography.labelSmall.copyWith(
+                  style: AppTypography.labelSmallResponsive(context).copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontSize: 9,
                   ),

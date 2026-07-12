@@ -103,7 +103,7 @@ class _ScreenIntro extends StatelessWidget {
       children: [
         Text(
           'ANALYTICS',
-          style: AppTypography.labelSmall.copyWith(
+          style: AppTypography.labelSmallResponsive(context).copyWith(
             color: colorScheme.primary,
             letterSpacing: 2,
           ),
@@ -111,14 +111,14 @@ class _ScreenIntro extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Planning Accuracy',
-          style: AppTypography.headingLarge.copyWith(
+          style: AppTypography.headingLargeResponsive(context).copyWith(
             color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Detailed analysis of estimated duration vs. actual execution reality.',
-          style: AppTypography.bodyMedium.copyWith(
+          style: AppTypography.bodyMediumResponsive(context).copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),

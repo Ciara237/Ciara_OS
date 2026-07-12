@@ -59,7 +59,7 @@ class InlineSectionEmptyState extends StatelessWidget {
             Text(
               title!,
               textAlign: TextAlign.center,
-              style: AppTypography.labelLarge.copyWith(
+              style: AppTypography.labelLargeResponsive(context).copyWith(
                 color: colorScheme.onSurface,
               ),
             ),
@@ -68,7 +68,7 @@ class InlineSectionEmptyState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: AppTypography.bodyMedium.copyWith(
+            style: AppTypography.bodyMediumResponsive(context).copyWith(
               color: colorScheme.onSurfaceVariant,
               height: 1.45,
             ),
@@ -78,7 +78,7 @@ class InlineSectionEmptyState extends StatelessWidget {
             Text(
               actionHint!,
               textAlign: TextAlign.center,
-              style: AppTypography.labelSmall.copyWith(
+              style: AppTypography.labelSmallResponsive(context).copyWith(
                 color: colorScheme.primary,
               ),
             ),
@@ -90,7 +90,7 @@ class InlineSectionEmptyState extends StatelessWidget {
               children: [
                 Text(
                   'Progress',
-                  style: AppTypography.labelSmall.copyWith(
+                  style: AppTypography.labelSmallResponsive(context).copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -98,7 +98,7 @@ class InlineSectionEmptyState extends StatelessWidget {
                   progressUnit == null
                       ? '$progressCurrent / $progressMax'
                       : '$progressCurrent / $progressMax $progressUnit',
-                  style: AppTypography.labelSmall.copyWith(
+                  style: AppTypography.labelSmallResponsive(context).copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
@@ -151,7 +151,7 @@ class ChartPlaceholder extends StatelessWidget {
           ),
           Text(
             overlayLabel.toUpperCase(),
-            style: AppTypography.labelSmall.copyWith(
+            style: AppTypography.labelSmallResponsive(context).copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
               letterSpacing: 1.2,
             ),
@@ -216,7 +216,7 @@ class TrendBuildingNote extends StatelessWidget {
       padding: const EdgeInsets.only(top: AppSpacing.sm),
       child: Text(
         message,
-        style: AppTypography.labelSmall.copyWith(
+        style: AppTypography.labelSmallResponsive(context).copyWith(
           color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
           fontStyle: FontStyle.italic,
         ),

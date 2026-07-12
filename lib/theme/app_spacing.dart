@@ -1,4 +1,8 @@
+import 'package:ciaraos/theme/app_responsive.dart';
+import 'package:flutter/material.dart';
+
 /// Spacing + radius tokens from Stitch tailwind config + DESIGN.md.
+/// All methods have responsive variants that scale on mobile devices.
 abstract final class AppSpacing {
   // Semantic spacing (maps to recurring HTML values)
   static const double xs = 4; // execution-gap
@@ -26,4 +30,63 @@ abstract final class AppSpacing {
   static const double radiusMd = 8; // lg / 0.5rem (standard buttons, inputs)
   static const double radiusLg = 16; // DESIGN.md lg / 1rem (review cards)
   static const double radiusFull = 9999;
+
+  // MARK: - Responsive Spacing Methods
+
+  /// Responsive vertical padding - increases on mobile
+  static double verticalPadding(BuildContext context) {
+    final scale = AppResponsive.verticalPaddingScale(context);
+    return lg * scale;
+  }
+
+  /// Responsive horizontal padding - increases on mobile
+  static double horizontalPadding(BuildContext context) {
+    final scale = AppResponsive.horizontalPaddingScale(context);
+    return md * scale;
+  }
+
+  /// Responsive section spacing - increases on mobile
+  static double sectionSpacing(BuildContext context) {
+    final scale = AppResponsive.sectionSpacingScale(context);
+    return lg * scale;
+  }
+
+  /// Responsive card internal padding - increases on mobile
+  static double cardPadding(BuildContext context) {
+    final scale = AppResponsive.cardPaddingScale(context);
+    return lg * scale;
+  }
+
+  /// Responsive widget spacing - increases on mobile
+  static double widgetSpacing(BuildContext context) {
+    final scale = AppResponsive.widgetSpacingScale(context);
+    return sm * scale;
+  }
+
+  /// Responsive button height - increases on mobile
+  static double buttonHeight(BuildContext context) {
+    final scale = AppResponsive.buttonHeightScale(context);
+    return 40 * scale;
+  }
+
+  /// Responsive icon size - increases on mobile
+  static double iconSize(BuildContext context) {
+    final scale = AppResponsive.iconScale(context);
+    return 24 * scale;
+  }
+
+  /// Minimum touch target size (48dp)
+  static double minTouchTarget(BuildContext context) {
+    return 48.0;
+  }
+
+  /// Minimum icon button size (48dp)
+  static double minIconButtonSize(BuildContext context) {
+    return 48.0;
+  }
+
+  /// Minimum list tile height (48dp)
+  static double minListTileHeight(BuildContext context) {
+    return 48.0;
+  }
 }
